@@ -36,7 +36,7 @@ Each of these is a design decision, and each one shows up in system design inter
 |---|---|
 | 00 · test harness | ✅ |
 | 01 · in-memory algorithms | ✅ |
-| 02 · single-node middleware | planned |
+| 02 · single-node middleware | ✅ |
 | 03 · Redis + Lua | planned |
 | 04 · Redis Cluster scaling | planned |
 | 05 · edge rate limiting | planned |
@@ -63,6 +63,20 @@ Only the log is exact, and it stores a timestamp per request. The sliding window
 within 2% with two counters. The buckets and GCRA admit 100 plus the 7 tokens that refilled
 between the bursts, exactly their rule. The fixed window doubles the limit.
 
+### 2. Three replicas, three limits
+
+The same API and the same limit (100 per 10 s per key) behind nginx, with the limiter's state in
+each replica's memory. ([phase 02](02-single-node-middleware/README.md))
+
+| Traffic on one key | 1 replica | 3 replicas |
+|---|---|---|
+| 150 requests at 50/s | 100 | **150** |
+| 200 requests at once | 100 | **200** |
+| 600 requests on a 300 global limit | 300 | **600** |
+
+Every replica sees a third of the traffic and never reaches its own limit. A client also sees
+`remaining` jump between replies, because each reply comes from a different replica's count.
+
 ---
 
 ## The test harness
@@ -82,10 +96,16 @@ Anything above that, plus a 5% tolerance, is over-admission.
 | `accuracy` | 150 requests at 50/s on one key | admitted stays within the bound |
 | `boundary_burst` | 100 just before a window reset, 100 just after | the most admitted in any window stays within the bound |
 | `concurrency` | 200 requests on one key released at once | admitted stays within the bound |
-| `global_limit` | 600 requests from 50 keys, new connection each | the shared limit holds across replicas |
+| `global_limit` | 600 requests from 50 keys | the shared limit holds across replicas |
 | `headers` | 110 sequential requests | `RateLimit` / `RateLimit-Policy` match the policy, `429` has `Retry-After` |
 | `failover` | store killed, then requests | fail-open routes answer 200, fail-closed routes 503, nobody waits |
 | `latency_overhead` | 200 requests on `/ping` and on a limited route | p95 difference within budget |
+
+The harness uses aiohttp and opens its connections before any timed traffic. The first version
+used httpx: with 50 requests in flight it managed about 100 requests/s while Apache Bench got
+1,380/s from the same API, and opening connections through Docker Desktop's port forwarding added
+seconds. The bursts that should land 1.2 s apart landed 6 s apart, which made the boundary test
+meaningless.
 
 ---
 
@@ -106,6 +126,28 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pytest          # harness self-tests
 ```
 
+### Start one setup and test it
+
+```powershell
+cd ..\02-single-node-middleware
+docker compose up -d --build --wait           # API + nginx on :8080
+
+cd ..\rate-harness
+$env:HARNESS_ENV_FILE = "../02-single-node-middleware/harness/single-replica.env"
+.\.venv\Scripts\python.exe -m pytest tests/suites -rxXs
+.\.venv\Scripts\locust.exe -f load/locustfile.py --headless --host http://localhost:8080 --only-summary
+```
+
+Each phase README lists its setups and settings files.
+
+### Clean up
+
+```powershell
+docker compose down
+```
+
+Then quit Docker Desktop. On Windows, also run `wsl --shutdown` to free the memory.
+
 ---
 
 ## Project structure
@@ -118,6 +160,7 @@ rate-limiting-patterns/
 │   ├── tests/unit/            harness self-tests against an in-process stub API
 │   └── load/                  Locust user + load shape
 ├── 01-in-memory-algorithms/   six algorithms, property tests, benchmark
+├── 02-single-node-middleware/ FastAPI middleware, policies.yaml, nginx, 1 or 3 replicas
 ├── docs/images/               diagrams (.excalidraw source + .png)
 └── ruff.toml, LICENSE
 ```

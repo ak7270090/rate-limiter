@@ -1,0 +1,34 @@
+# One entry per limited route. Routes not listed here (/ping, /healthz) are not limited.
+routes:
+  - name: items
+    method: GET
+    path: /items
+    algorithm: sliding_window_counter
+    limit: 100
+    window_seconds: 10
+    scope: per_key
+
+  - name: orders
+    method: POST
+    path: /orders
+    algorithm: token_bucket
+    limit: 10
+    window_seconds: 60
+    burst: 5
+    scope: per_key
+
+  - name: search
+    method: GET
+    path: /search
+    algorithm: sliding_window_counter
+    limit: 300
+    window_seconds: 10
+    scope: global
+
+  - name: reports
+    method: POST
+    path: /reports
+    algorithm: fixed_window
+    limit: 50
+    window_seconds: 86400
+    scope: per_key
