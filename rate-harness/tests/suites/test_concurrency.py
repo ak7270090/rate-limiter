@@ -5,7 +5,7 @@ from rateharness.client_factory import create_api_key
 from rateharness.config import HarnessSettings
 from rateharness.limit_accuracy import LimitPolicy, summarize_admissions
 from rateharness.report_writer import HarnessReport, SuiteResult
-from rateharness.traffic_patterns import RequestTarget, send_fan_out
+from rateharness.traffic_patterns import RequestTarget, send_fan_out, wait_for_room_in_window
 
 pytestmark = [pytest.mark.anyio, pytest.mark.concurrency]
 
@@ -18,6 +18,7 @@ async def test_parallel_requests_on_one_key_stay_within_limit(
 ) -> None:
     target = RequestTarget(harness_settings.per_key_method, harness_settings.per_key_route)
     policy = LimitPolicy(harness_settings.per_key_limit, harness_settings.per_key_window_seconds)
+    await wait_for_room_in_window(policy.window_seconds, 1.0)
 
     responses = await send_fan_out(
         http_session,

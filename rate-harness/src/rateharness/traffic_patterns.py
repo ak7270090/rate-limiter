@@ -137,6 +137,18 @@ async def send_boundary_straddle(
     return before + after
 
 
+async def wait_for_room_in_window(
+    window_seconds: float, needed_seconds: float, wall_clock: Callable[[], float] = time.time
+) -> None:
+    """Start right after a window boundary if the traffic would otherwise cross one.
+
+    Only ``boundary_burst`` is about window resets; the other suites must not hit one by luck.
+    """
+    seconds_left = window_seconds - wall_clock() % window_seconds
+    if seconds_left < needed_seconds:
+        await anyio.sleep(seconds_left + 0.05)
+
+
 def next_window_boundary(now: float, window_seconds: float, minimum_lead_seconds: float) -> float:
     """The next epoch-aligned boundary that leaves at least ``minimum_lead_seconds`` to prepare."""
     boundary = math.ceil(now / window_seconds) * window_seconds

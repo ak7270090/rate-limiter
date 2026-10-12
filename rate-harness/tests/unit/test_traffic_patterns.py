@@ -16,6 +16,7 @@ from rateharness.traffic_patterns import (
     send_parallel,
     send_sequential,
     send_steady,
+    wait_for_room_in_window,
 )
 
 pytestmark = pytest.mark.anyio
@@ -101,6 +102,16 @@ async def test_open_connections_sends_one_request_each(
 
     async with stub_session.get("/ping") as response:
         assert response.status == 200
+
+
+async def test_wait_for_room_in_window_waits_only_when_needed() -> None:
+    started = time.perf_counter()
+    await wait_for_room_in_window(10.0, 2.0, wall_clock=lambda: 105.0)
+    assert time.perf_counter() - started < 0.05
+
+    started = time.perf_counter()
+    await wait_for_room_in_window(10.0, 2.0, wall_clock=lambda: 109.8)
+    assert time.perf_counter() - started == pytest.approx(0.25, abs=0.1)
 
 
 def test_next_window_boundary_leaves_room_to_prepare() -> None:

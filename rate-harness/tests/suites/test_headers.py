@@ -6,7 +6,7 @@ from rateharness.config import HarnessSettings
 from rateharness.constants import STATUS_TOO_MANY_REQUESTS
 from rateharness.header_checks import ExpectedHeaderPolicy, find_header_problems
 from rateharness.report_writer import HarnessReport, SuiteResult
-from rateharness.traffic_patterns import RequestTarget, send_sequential
+from rateharness.traffic_patterns import RequestTarget, send_sequential, wait_for_room_in_window
 
 pytestmark = [pytest.mark.anyio, pytest.mark.headers]
 
@@ -23,6 +23,7 @@ async def test_rate_limit_headers_are_present_and_consistent(
         quota=harness_settings.per_key_limit,
         window_seconds=int(harness_settings.per_key_window_seconds),
     )
+    await wait_for_room_in_window(harness_settings.per_key_window_seconds, 3.0)
 
     responses = await send_sequential(
         http_session, target, create_api_key("headers"), harness_settings.header_request_count
