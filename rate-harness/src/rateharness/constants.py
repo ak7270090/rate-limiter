@@ -1,0 +1,47 @@
+"""Fixed names shared by the harness: headers, status codes, suite markers, file names."""
+
+ENV_PREFIX = "HARNESS_"
+ENV_FILE_VARIABLE = "HARNESS_ENV_FILE"
+
+API_KEY_HEADER = "X-API-Key"
+REPLICA_ID_HEADER = "X-Replica-Id"
+RATE_LIMIT_HEADER = "RateLimit"
+RATE_LIMIT_POLICY_HEADER = "RateLimit-Policy"
+RETRY_AFTER_HEADER = "Retry-After"
+
+STATUS_OK = 200
+STATUS_TOO_MANY_REQUESTS = 429
+STATUS_SERVICE_UNAVAILABLE = 503
+
+QUOTA_PARAMETER = "q"
+WINDOW_PARAMETER = "w"
+REMAINING_PARAMETER = "r"
+RESET_PARAMETER = "t"
+
+SUITE_ACCURACY = "accuracy"
+SUITE_BOUNDARY_BURST = "boundary_burst"
+SUITE_CONCURRENCY = "concurrency"
+SUITE_GLOBAL_LIMIT = "global_limit"
+SUITE_HEADERS = "headers"
+SUITE_FAILOVER = "failover"
+SUITE_LATENCY_OVERHEAD = "latency_overhead"
+ALL_SUITES = frozenset(
+    {
+        SUITE_ACCURACY,
+        SUITE_BOUNDARY_BURST,
+        SUITE_CONCURRENCY,
+        SUITE_GLOBAL_LIMIT,
+        SUITE_HEADERS,
+        SUITE_FAILOVER,
+        SUITE_LATENCY_OVERHEAD,
+    }
+)
+
+OUTCOME_PASS = "PASS"
+OUTCOME_FAIL = "FAIL"
+OUTCOME_XFAIL = "XFAIL"
+OUTCOME_XPASS = "XPASS"
+OUTCOME_SKIPPED = "SKIP"
+
+REPORT_FILE_NAME = "harness-report.md"
+LOAD_REJECTIONS_FILE_NAME = "load-rejections.md"

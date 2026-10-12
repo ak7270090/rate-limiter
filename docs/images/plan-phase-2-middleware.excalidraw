@@ -1,0 +1,80 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "appState": {"viewBackgroundColor": "#ffffff", "gridSize": 20},
+  "files": {},
+  "elements": [
+    {"type": "text", "id": "title", "x": 20, "y": 20, "width": 900, "height": 35, "text": "Phase 2: middleware works on one replica and triples the limit on three", "originalText": "Phase 2: middleware works on one replica and triples the limit on three", "fontSize": 28, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "subtitle", "x": 20, "y": 62, "width": 1300, "height": 20, "text": "The limiter state lives in each process's memory, so every replica counts only the requests it happens to receive.", "originalText": "The limiter state lives in each process's memory, so every replica counts only the requests it happens to receive.", "fontSize": 16, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "text", "id": "s1_title", "x": 20, "y": 108, "width": 700, "height": 22, "text": "inside every replica: rate_limit_middleware", "originalText": "inside every replica: rate_limit_middleware", "fontSize": 18, "fontFamily": 3, "strokeColor": "#3b82f6", "roughness": 1},
+
+    {"type": "ellipse", "id": "req", "x": 20, "y": 150, "width": 160, "height": 76, "strokeColor": "#c2410c", "backgroundColor": "#fed7aa", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "boundElements": [{"id": "req_t", "type": "text"}]},
+    {"type": "text", "id": "req_t", "x": 40, "y": 168, "width": 120, "height": 40, "text": "GET /items\nX-API-Key", "originalText": "GET /items\nX-API-Key", "fontSize": 15, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "req", "roughness": 1},
+    {"type": "rectangle", "id": "ke", "x": 220, "y": 153, "width": 180, "height": 70, "strokeColor": "#1e3a5f", "backgroundColor": "#dbeafe", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "ke_t", "type": "text"}]},
+    {"type": "text", "id": "ke_t", "x": 225, "y": 176, "width": 170, "height": 24, "text": "key_extractor", "originalText": "key_extractor", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "ke", "roughness": 1},
+    {"type": "rectangle", "id": "pr", "x": 440, "y": 153, "width": 190, "height": 70, "strokeColor": "#1e3a5f", "backgroundColor": "#dbeafe", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "pr_t", "type": "text"}]},
+    {"type": "text", "id": "pr_t", "x": 445, "y": 176, "width": 180, "height": 24, "text": "policy_registry", "originalText": "policy_registry", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "pr", "roughness": 1},
+    {"type": "rectangle", "id": "lim", "x": 670, "y": 153, "width": 190, "height": 70, "strokeColor": "#1e3a5f", "backgroundColor": "#93c5fd", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "lim_t", "type": "text"}]},
+    {"type": "text", "id": "lim_t", "x": 675, "y": 166, "width": 180, "height": 44, "text": "limiter.acquire()\nmemory dict", "originalText": "limiter.acquire()\nmemory dict", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "lim", "roughness": 1},
+    {"type": "diamond", "id": "dec", "x": 900, "y": 133, "width": 140, "height": 110, "strokeColor": "#b45309", "backgroundColor": "#fef3c7", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "boundElements": [{"id": "dec_t", "type": "text"}]},
+    {"type": "text", "id": "dec_t", "x": 930, "y": 176, "width": 80, "height": 24, "text": "allowed?", "originalText": "allowed?", "fontSize": 15, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "dec", "roughness": 1},
+    {"type": "rectangle", "id": "ok", "x": 1100, "y": 118, "width": 220, "height": 56, "strokeColor": "#047857", "backgroundColor": "#a7f3d0", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "ok_t", "type": "text"}]},
+    {"type": "text", "id": "ok_t", "x": 1105, "y": 134, "width": 210, "height": 24, "text": "route handler, 200", "originalText": "route handler, 200", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "ok", "roughness": 1},
+    {"type": "rectangle", "id": "rej", "x": 1100, "y": 202, "width": 220, "height": 56, "strokeColor": "#b91c1c", "backgroundColor": "#fecaca", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "rej_t", "type": "text"}]},
+    {"type": "text", "id": "rej_t", "x": 1105, "y": 218, "width": 210, "height": 24, "text": "429 + Retry-After", "originalText": "429 + Retry-After", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "rej", "roughness": 1},
+
+    {"type": "arrow", "id": "m1", "x": 182, "y": 188, "width": 34, "height": 0, "points": [[0, 0], [34, 0]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "m2", "x": 402, "y": 188, "width": 34, "height": 0, "points": [[0, 0], [34, 0]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "m3", "x": 632, "y": 188, "width": 34, "height": 0, "points": [[0, 0], [34, 0]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "m4", "x": 862, "y": 188, "width": 36, "height": 0, "points": [[0, 0], [36, 0]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "m5", "x": 1030, "y": 168, "width": 66, "height": 22, "points": [[0, 0], [66, -22]], "strokeColor": "#047857", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "m6", "x": 1030, "y": 208, "width": 66, "height": 22, "points": [[0, 0], [66, 22]], "strokeColor": "#b91c1c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "text", "id": "m5_t", "x": 1040, "y": 128, "width": 40, "height": 16, "text": "yes", "originalText": "yes", "fontSize": 13, "fontFamily": 3, "strokeColor": "#047857", "roughness": 1},
+    {"type": "text", "id": "m6_t", "x": 1046, "y": 232, "width": 40, "height": 16, "text": "no", "originalText": "no", "fontSize": 13, "fontFamily": 3, "strokeColor": "#b91c1c", "roughness": 1},
+
+    {"type": "text", "id": "ke_note", "x": 220, "y": 236, "width": 200, "height": 54, "text": "API key, then user,\nthen client IP\n(trusted LB only)", "originalText": "API key, then user,\nthen client IP\n(trusted LB only)", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "text", "id": "hdr_note", "x": 1100, "y": 270, "width": 240, "height": 36, "text": "RateLimit headers on\nevery response", "originalText": "RateLimit headers on\nevery response", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "text", "id": "pol_label", "x": 444, "y": 236, "width": 400, "height": 18, "text": "policies.yaml", "originalText": "policies.yaml", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "rectangle", "id": "pol_panel", "x": 440, "y": 260, "width": 420, "height": 132, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "pol_text", "x": 456, "y": 272, "width": 390, "height": 108, "text": "/items:\n  algorithm: sliding_window_counter\n  limit: 100\n  window_seconds: 10\n  scope: per_key", "originalText": "/items:\n  algorithm: sliding_window_counter\n  limit: 100\n  window_seconds: 10\n  scope: per_key", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+
+    {"type": "line", "id": "div_h", "x": 20, "y": 420, "width": 1320, "height": 0, "points": [[0, 0], [1320, 0]], "strokeColor": "#64748b", "strokeWidth": 1, "strokeStyle": "dashed", "roughness": 1},
+    {"type": "text", "id": "s2_title", "x": 20, "y": 440, "width": 900, "height": 22, "text": "the same limit (100 per 10 s), 150 requests from one key", "originalText": "the same limit (100 per 10 s), 150 requests from one key", "fontSize": 18, "fontFamily": 3, "strokeColor": "#3b82f6", "roughness": 1},
+
+    {"type": "text", "id": "runa_t", "x": 20, "y": 486, "width": 300, "height": 20, "text": "run A: 1 replica", "originalText": "run A: 1 replica", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "ellipse", "id": "ca", "x": 20, "y": 560, "width": 140, "height": 70, "strokeColor": "#c2410c", "backgroundColor": "#fed7aa", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "boundElements": [{"id": "ca_t", "type": "text"}]},
+    {"type": "text", "id": "ca_t", "x": 40, "y": 583, "width": 100, "height": 24, "text": "harness", "originalText": "harness", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "ca", "roughness": 1},
+    {"type": "rectangle", "id": "ra", "x": 240, "y": 555, "width": 220, "height": 80, "strokeColor": "#1e3a5f", "backgroundColor": "#93c5fd", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "ra_t", "type": "text"}]},
+    {"type": "text", "id": "ra_t", "x": 245, "y": 573, "width": 210, "height": 44, "text": "replica 1\nk42: 100 / 100", "originalText": "replica 1\nk42: 100 / 100", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "ra", "roughness": 1},
+    {"type": "arrow", "id": "a_ca", "x": 162, "y": 595, "width": 74, "height": 0, "points": [[0, 0], [74, 0]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "text", "id": "runa_res", "x": 240, "y": 652, "width": 320, "height": 50, "text": "admitted 100\n50 rejected with 429", "originalText": "admitted 100\n50 rejected with 429", "fontSize": 18, "fontFamily": 3, "strokeColor": "#047857", "roughness": 1},
+
+    {"type": "line", "id": "div_v", "x": 580, "y": 480, "width": 0, "height": 260, "points": [[0, 0], [0, 260]], "strokeColor": "#64748b", "strokeWidth": 1, "strokeStyle": "dashed", "roughness": 1},
+
+    {"type": "text", "id": "runb_t", "x": 620, "y": 486, "width": 500, "height": 20, "text": "run B: 3 replicas behind nginx", "originalText": "run B: 3 replicas behind nginx", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "ellipse", "id": "cb", "x": 620, "y": 600, "width": 140, "height": 70, "strokeColor": "#c2410c", "backgroundColor": "#fed7aa", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "boundElements": [{"id": "cb_t", "type": "text"}]},
+    {"type": "text", "id": "cb_t", "x": 640, "y": 623, "width": 100, "height": 24, "text": "harness", "originalText": "harness", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "cb", "roughness": 1},
+    {"type": "rectangle", "id": "ngx", "x": 810, "y": 595, "width": 150, "height": 80, "strokeColor": "#1e3a5f", "backgroundColor": "#dbeafe", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "ngx_t", "type": "text"}]},
+    {"type": "text", "id": "ngx_t", "x": 815, "y": 613, "width": 140, "height": 44, "text": "nginx\nround robin", "originalText": "nginx\nround robin", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "ngx", "roughness": 1},
+    {"type": "arrow", "id": "a_cb", "x": 762, "y": 635, "width": 44, "height": 0, "points": [[0, 0], [44, 0]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+
+    {"type": "rectangle", "id": "rb1", "x": 1020, "y": 520, "width": 210, "height": 64, "strokeColor": "#1e3a5f", "backgroundColor": "#93c5fd", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "rb1_t", "type": "text"}]},
+    {"type": "text", "id": "rb1_t", "x": 1025, "y": 530, "width": 200, "height": 44, "text": "replica 1\nk42: 50 / 100", "originalText": "replica 1\nk42: 50 / 100", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "rb1", "roughness": 1},
+    {"type": "rectangle", "id": "rb2", "x": 1020, "y": 603, "width": 210, "height": 64, "strokeColor": "#1e3a5f", "backgroundColor": "#93c5fd", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "rb2_t", "type": "text"}]},
+    {"type": "text", "id": "rb2_t", "x": 1025, "y": 613, "width": 200, "height": 44, "text": "replica 2\nk42: 50 / 100", "originalText": "replica 2\nk42: 50 / 100", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "rb2", "roughness": 1},
+    {"type": "rectangle", "id": "rb3", "x": 1020, "y": 686, "width": 210, "height": 64, "strokeColor": "#1e3a5f", "backgroundColor": "#93c5fd", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "rb3_t", "type": "text"}]},
+    {"type": "text", "id": "rb3_t", "x": 1025, "y": 696, "width": 200, "height": 44, "text": "replica 3\nk42: 50 / 100", "originalText": "replica 3\nk42: 50 / 100", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "rb3", "roughness": 1},
+    {"type": "arrow", "id": "n1", "x": 962, "y": 625, "width": 54, "height": 73, "points": [[0, 0], [54, -73]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "n2", "x": 962, "y": 635, "width": 54, "height": 0, "points": [[0, 0], [54, 0]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "n3", "x": 962, "y": 645, "width": 54, "height": 73, "points": [[0, 0], [54, 73]], "strokeColor": "#1e3a5f", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+
+    {"type": "arrow", "id": "x1", "x": 1234, "y": 552, "width": 46, "height": 70, "points": [[0, 0], [46, 70]], "strokeColor": "#b91c1c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "x2", "x": 1234, "y": 635, "width": 46, "height": 0, "points": [[0, 0], [46, 0]], "strokeColor": "#b91c1c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "x3", "x": 1234, "y": 718, "width": 46, "height": 70, "points": [[0, 0], [46, -70]], "strokeColor": "#b91c1c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "text", "id": "runb_res", "x": 1290, "y": 600, "width": 300, "height": 75, "text": "admitted 150\n0 rejected\neach copy sees 1/3", "originalText": "admitted 150\n0 rejected\neach copy sees 1/3", "fontSize": 18, "fontFamily": 3, "strokeColor": "#b91c1c", "roughness": 1},
+    {"type": "text", "id": "runb_note", "x": 1020, "y": 764, "width": 560, "height": 18, "text": "real limit = 3 x 100 = 300 until the replicas share state", "originalText": "real limit = 3 x 100 = 300 until the replicas share state", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1}
+  ]
+}

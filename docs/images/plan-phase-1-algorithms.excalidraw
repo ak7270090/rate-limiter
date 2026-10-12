@@ -1,0 +1,71 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "appState": {"viewBackgroundColor": "#ffffff", "gridSize": 20},
+  "files": {},
+  "elements": [
+    {"type": "text", "id": "title", "x": 20, "y": 20, "width": 900, "height": 35, "text": "Phase 1: one interface, six algorithms, six shapes of state", "originalText": "Phase 1: one interface, six algorithms, six shapes of state", "fontSize": 28, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "subtitle", "x": 20, "y": 62, "width": 1300, "height": 20, "text": "Every algorithm answers acquire(key, cost). What it stores per key decides its memory, its accuracy and how it treats bursts.", "originalText": "Every algorithm answers acquire(key, cost). What it stores per key decides its memory, its accuracy and how it treats bursts.", "fontSize": 16, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "ellipse", "id": "call", "x": 20, "y": 318, "width": 220, "height": 90, "strokeColor": "#c2410c", "backgroundColor": "#fed7aa", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "boundElements": [{"id": "call_t", "type": "text"}]},
+    {"type": "text", "id": "call_t", "x": 45, "y": 343, "width": 170, "height": 40, "text": "acquire(\"k42\", 1)", "originalText": "acquire(\"k42\", 1)", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "call", "roughness": 1},
+
+    {"type": "text", "id": "col_algo", "x": 300, "y": 100, "width": 250, "height": 18, "text": "algorithm", "originalText": "algorithm", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "text", "id": "col_state", "x": 580, "y": 100, "width": 400, "height": 18, "text": "state kept for key k42", "originalText": "state kept for key k42", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "text", "id": "col_note", "x": 1040, "y": 100, "width": 300, "height": 18, "text": "what it means", "originalText": "what it means", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "rectangle", "id": "a1", "x": 300, "y": 126, "width": 250, "height": 56, "strokeColor": "#dc2626", "backgroundColor": "#fee2e2", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "a1_t", "type": "text"}]},
+    {"type": "text", "id": "a1_t", "x": 305, "y": 144, "width": 240, "height": 20, "text": "fixed window", "originalText": "fixed window", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "a1", "roughness": 1},
+    {"type": "rectangle", "id": "s1", "x": 576, "y": 130, "width": 440, "height": 48, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "s1_t", "x": 592, "y": 144, "width": 410, "height": 20, "text": "window 12:00:10  count=7", "originalText": "window 12:00:10  count=7", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+    {"type": "text", "id": "n1", "x": 1040, "y": 134, "width": 340, "height": 40, "text": "1 counter; up to 2x the\nlimit around a window reset", "originalText": "1 counter; up to 2x the\nlimit around a window reset", "fontSize": 15, "fontFamily": 3, "strokeColor": "#dc2626", "roughness": 1},
+
+    {"type": "rectangle", "id": "a2", "x": 300, "y": 206, "width": 250, "height": 56, "strokeColor": "#1e3a5f", "backgroundColor": "#dbeafe", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "a2_t", "type": "text"}]},
+    {"type": "text", "id": "a2_t", "x": 305, "y": 224, "width": 240, "height": 20, "text": "sliding window log", "originalText": "sliding window log", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "a2", "roughness": 1},
+    {"type": "rectangle", "id": "s2", "x": 576, "y": 210, "width": 440, "height": 48, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "s2_t", "x": 592, "y": 224, "width": 410, "height": 20, "text": "[10:01.2, 10:03.9, 10:07.5, ...]", "originalText": "[10:01.2, 10:03.9, 10:07.5, ...]", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+    {"type": "text", "id": "n2", "x": 1040, "y": 214, "width": 340, "height": 40, "text": "exact; one timestamp\nper request (memory grows)", "originalText": "exact; one timestamp\nper request (memory grows)", "fontSize": 15, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "rectangle", "id": "a3", "x": 300, "y": 286, "width": 250, "height": 56, "strokeColor": "#1e3a5f", "backgroundColor": "#dbeafe", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "a3_t", "type": "text"}]},
+    {"type": "text", "id": "a3_t", "x": 305, "y": 304, "width": 240, "height": 20, "text": "sliding window counter", "originalText": "sliding window counter", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "a3", "roughness": 1},
+    {"type": "rectangle", "id": "s3", "x": 576, "y": 290, "width": 440, "height": 48, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "s3_t", "x": 592, "y": 304, "width": 410, "height": 20, "text": "prev=80 curr=30 -> 80*0.6 + 30 = 78", "originalText": "prev=80 curr=30 -> 80*0.6 + 30 = 78", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+    {"type": "text", "id": "n3", "x": 1040, "y": 294, "width": 340, "height": 40, "text": "2 counters; close to exact\n(weighted previous window)", "originalText": "2 counters; close to exact\n(weighted previous window)", "fontSize": 15, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "rectangle", "id": "a4", "x": 300, "y": 366, "width": 250, "height": 56, "strokeColor": "#047857", "backgroundColor": "#a7f3d0", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "a4_t", "type": "text"}]},
+    {"type": "text", "id": "a4_t", "x": 305, "y": 384, "width": 240, "height": 20, "text": "token bucket", "originalText": "token bucket", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "a4", "roughness": 1},
+    {"type": "rectangle", "id": "s4", "x": 576, "y": 370, "width": 440, "height": 48, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "s4_t", "x": 592, "y": 384, "width": 410, "height": 20, "text": "tokens=4.5  last_refill=10:09.1", "originalText": "tokens=4.5  last_refill=10:09.1", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+    {"type": "text", "id": "n4", "x": 1040, "y": 374, "width": 340, "height": 40, "text": "refills on access; bursts\nup to the bucket capacity", "originalText": "refills on access; bursts\nup to the bucket capacity", "fontSize": 15, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "rectangle", "id": "a5", "x": 300, "y": 446, "width": 250, "height": 56, "strokeColor": "#1e3a5f", "backgroundColor": "#dbeafe", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "a5_t", "type": "text"}]},
+    {"type": "text", "id": "a5_t", "x": 305, "y": 464, "width": 240, "height": 20, "text": "leaky bucket", "originalText": "leaky bucket", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "a5", "roughness": 1},
+    {"type": "rectangle", "id": "s5", "x": 576, "y": 450, "width": 440, "height": 48, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "s5_t", "x": 592, "y": 464, "width": 410, "height": 20, "text": "level=6  leaks 10/s  last=10:09.1", "originalText": "level=6  leaks 10/s  last=10:09.1", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+    {"type": "text", "id": "n5", "x": 1040, "y": 454, "width": 340, "height": 40, "text": "smooth output rate;\nqueue variant delays", "originalText": "smooth output rate;\nqueue variant delays", "fontSize": 15, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "rectangle", "id": "a6", "x": 300, "y": 526, "width": 250, "height": 56, "strokeColor": "#047857", "backgroundColor": "#a7f3d0", "fillStyle": "solid", "strokeWidth": 2, "roughness": 1, "roundness": {"type": 3}, "boundElements": [{"id": "a6_t", "type": "text"}]},
+    {"type": "text", "id": "a6_t", "x": 305, "y": 544, "width": 240, "height": 20, "text": "GCRA", "originalText": "GCRA", "fontSize": 16, "fontFamily": 3, "textAlign": "center", "verticalAlign": "middle", "strokeColor": "#374151", "containerId": "a6", "roughness": 1},
+    {"type": "rectangle", "id": "s6", "x": 576, "y": 530, "width": 440, "height": 48, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "s6_t", "x": 592, "y": 544, "width": 410, "height": 20, "text": "tat=10:10.4  (theoretical arrival)", "originalText": "tat=10:10.4  (theoretical arrival)", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+    {"type": "text", "id": "n6", "x": 1040, "y": 534, "width": 340, "height": 40, "text": "token bucket behaviour\nfrom one timestamp", "originalText": "token bucket behaviour\nfrom one timestamp", "fontSize": 15, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "arrow", "id": "f1", "x": 238, "y": 350, "width": 58, "height": 196, "points": [[0, 0], [58, -196]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "f2", "x": 240, "y": 356, "width": 56, "height": 122, "points": [[0, 0], [56, -122]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "f3", "x": 242, "y": 360, "width": 54, "height": 46, "points": [[0, 0], [54, -46]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "f4", "x": 242, "y": 366, "width": 54, "height": 28, "points": [[0, 0], [54, 28]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "f5", "x": 240, "y": 372, "width": 56, "height": 102, "points": [[0, 0], [56, 102]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+    {"type": "arrow", "id": "f6", "x": 238, "y": 378, "width": 58, "height": 176, "points": [[0, 0], [58, 176]], "strokeColor": "#c2410c", "strokeWidth": 2, "roughness": 1, "endArrowhead": "arrow"},
+
+    {"type": "line", "id": "div", "x": 20, "y": 612, "width": 1360, "height": 0, "points": [[0, 0], [1360, 0]], "strokeColor": "#64748b", "strokeWidth": 1, "strokeStyle": "dashed", "roughness": 1},
+
+    {"type": "text", "id": "dec_label", "x": 20, "y": 632, "width": 600, "height": 18, "text": "every algorithm returns the same decision", "originalText": "every algorithm returns the same decision", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "rectangle", "id": "dec_panel", "x": 16, "y": 656, "width": 640, "height": 140, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "dec_text", "x": 32, "y": 670, "width": 610, "height": 112, "text": "RateLimitDecision(\n    is_allowed=False,\n    limit=100, remaining=0,\n    reset_after_seconds=0.6,\n    retry_after_seconds=0.6)", "originalText": "RateLimitDecision(\n    is_allowed=False,\n    limit=100, remaining=0,\n    reset_after_seconds=0.6,\n    retry_after_seconds=0.6)", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+
+    {"type": "text", "id": "prop_label", "x": 700, "y": 632, "width": 680, "height": 18, "text": "property test with a fake clock: no real waiting", "originalText": "property test with a fake clock: no real waiting", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "rectangle", "id": "prop_panel", "x": 696, "y": 656, "width": 684, "height": 140, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "prop_text", "x": 712, "y": 670, "width": 660, "height": 112, "text": "@given(arrival_gaps=lists(floats(0, 2)))\nasync def test_never_admits_more_than_limit(...):\n    for gap in arrival_gaps:\n        fake_clock.advance(gap)\n        await limiter.acquire(\"k42\")", "originalText": "@given(arrival_gaps=lists(floats(0, 2)))\nasync def test_never_admits_more_than_limit(...):\n    for gap in arrival_gaps:\n        fake_clock.advance(gap)\n        await limiter.acquire(\"k42\")", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0}
+  ]
+}

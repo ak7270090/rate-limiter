@@ -1,0 +1,45 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "appState": {"viewBackgroundColor": "#ffffff", "gridSize": 20},
+  "files": {},
+  "elements": [
+    {"type": "text", "id": "title", "x": 20, "y": 20, "width": 900, "height": 35, "text": "Phase 6: a 35-minute answer where every claim points to a phase", "originalText": "Phase 6: a 35-minute answer where every claim points to a phase", "fontSize": 28, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "subtitle", "x": 20, "y": 62, "width": 1400, "height": 20, "text": "design-a-rate-limiter.md follows the order an interviewer expects; the measured results replace hand-waving.", "originalText": "design-a-rate-limiter.md follows the order an interviewer expects; the measured results replace hand-waving.", "fontSize": 16, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "line", "id": "tl", "x": 40, "y": 230, "width": 1440, "height": 0, "points": [[0, 0], [1440, 0]], "strokeColor": "#1e3a5f", "strokeWidth": 3, "roughness": 1},
+
+    {"type": "ellipse", "id": "d1", "x": 62, "y": 220, "width": 20, "height": 20, "strokeColor": "#c2410c", "backgroundColor": "#c2410c", "fillStyle": "solid", "roughness": 0},
+    {"type": "text", "id": "d1_h", "x": 40, "y": 130, "width": 230, "height": 70, "text": "1 requirements\n+ estimates\n5 min", "originalText": "1 requirements\n+ estimates\n5 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "d1_b", "x": 40, "y": 256, "width": 230, "height": 72, "text": "limit whom: key,\nuser, IP, global?\nhard or soft?\nsizing panel below", "originalText": "limit whom: key,\nuser, IP, global?\nhard or soft?\nsizing panel below", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "ellipse", "id": "d2", "x": 302, "y": 220, "width": 20, "height": 20, "strokeColor": "#3b82f6", "backgroundColor": "#3b82f6", "fillStyle": "solid", "roughness": 0},
+    {"type": "text", "id": "d2_h", "x": 280, "y": 130, "width": 230, "height": 70, "text": "2 API +\nheaders\n3 min", "originalText": "2 API +\nheaders\n3 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "d2_b", "x": 280, "y": 256, "width": 230, "height": 72, "text": "429, Retry-After,\nRateLimit-Policy\n\nfrom phase 02", "originalText": "429, Retry-After,\nRateLimit-Policy\n\nfrom phase 02", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "ellipse", "id": "d3", "x": 542, "y": 220, "width": 20, "height": 20, "strokeColor": "#3b82f6", "backgroundColor": "#3b82f6", "fillStyle": "solid", "roughness": 0},
+    {"type": "text", "id": "d3_h", "x": 520, "y": 130, "width": 230, "height": 70, "text": "3 algorithm\n\n7 min", "originalText": "3 algorithm\n\n7 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "d3_b", "x": 520, "y": 256, "width": 230, "height": 72, "text": "token bucket: bursts\nsliding counter:\naccuracy\nfrom phase 01", "originalText": "token bucket: bursts\nsliding counter:\naccuracy\nfrom phase 01", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "ellipse", "id": "d4", "x": 782, "y": 220, "width": 20, "height": 20, "strokeColor": "#b91c1c", "backgroundColor": "#b91c1c", "fillStyle": "solid", "roughness": 0},
+    {"type": "text", "id": "d4_h", "x": 760, "y": 130, "width": 230, "height": 70, "text": "4 storage\n\n7 min", "originalText": "4 storage\n\n7 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "d4_b", "x": 760, "y": 256, "width": 230, "height": 72, "text": "Redis + Lua,\nRedis TIME, TTL\n\nfrom phase 03", "originalText": "Redis + Lua,\nRedis TIME, TTL\n\nfrom phase 03", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "ellipse", "id": "d5", "x": 1022, "y": 220, "width": 20, "height": 20, "strokeColor": "#b91c1c", "backgroundColor": "#b91c1c", "fillStyle": "solid", "roughness": 0},
+    {"type": "text", "id": "d5_h", "x": 1000, "y": 130, "width": 230, "height": 70, "text": "5 scaling\n\n7 min", "originalText": "5 scaling\n\n7 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "d5_b", "x": 1000, "y": 256, "width": 230, "height": 72, "text": "hash tags, split\nor lease hot keys\n\nfrom phase 04", "originalText": "hash tags, split\nor lease hot keys\n\nfrom phase 04", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "ellipse", "id": "d6", "x": 1262, "y": 220, "width": 20, "height": 20, "strokeColor": "#047857", "backgroundColor": "#047857", "fillStyle": "solid", "roughness": 0},
+    {"type": "text", "id": "d6_h", "x": 1240, "y": 130, "width": 240, "height": 70, "text": "6 failures +\nwhere to enforce\n6 min", "originalText": "6 failures +\nwhere to enforce\n6 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
+    {"type": "text", "id": "d6_b", "x": 1240, "y": 256, "width": 240, "height": 72, "text": "fail-open/closed,\nedge + app\n\nfrom phases 03, 05", "originalText": "fail-open/closed,\nedge + app\n\nfrom phases 03, 05", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+
+    {"type": "text", "id": "size_label", "x": 20, "y": 364, "width": 700, "height": 18, "text": "sizing template, filled from results/", "originalText": "sizing template, filled from results/", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "rectangle", "id": "size_panel", "x": 16, "y": 388, "width": 700, "height": 150, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "size_text", "x": 32, "y": 400, "width": 670, "height": 126, "text": "keys x bytes per key       = memory\n  10 M x <phase 03 MEMORY USAGE>\nrequests/s x ops/request   = Redis ops/s\n  50 k x 1 EVALSHA\nRedis ops/s / per-shard max = primaries\n  50 k / <phase 04 measured>", "originalText": "keys x bytes per key       = memory\n  10 M x <phase 03 MEMORY USAGE>\nrequests/s x ops/request   = Redis ops/s\n  50 k x 1 EVALSHA\nRedis ops/s / per-shard max = primaries\n  50 k / <phase 04 measured>", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0},
+
+    {"type": "text", "id": "qa_label", "x": 760, "y": 364, "width": 700, "height": 18, "text": "interview-questions.md (each answer names its phase)", "originalText": "interview-questions.md (each answer names its phase)", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "rectangle", "id": "qa_panel", "x": 756, "y": 388, "width": 724, "height": 150, "strokeColor": "#1e293b", "backgroundColor": "#1e293b", "fillStyle": "solid", "strokeWidth": 1, "roughness": 0, "roundness": {"type": 3}},
+    {"type": "text", "id": "qa_text", "x": 772, "y": 400, "width": 694, "height": 126, "text": "two replicas read the same count?  Lua      03\nserver clocks differ?              TIME     03\nRedis is down?                     breaker  03\none key gets 1,000 req/s?          split    04\nclients retry in a storm?          jitter   02\nwhy not only nginx?                per-node 05", "originalText": "two replicas read the same count?  Lua      03\nserver clocks differ?              TIME     03\nRedis is down?                     breaker  03\none key gets 1,000 req/s?          split    04\nclients retry in a storm?          jitter   02\nwhy not only nginx?                per-node 05", "fontSize": 15, "fontFamily": 3, "strokeColor": "#22c55e", "roughness": 0}
+  ]
+}
