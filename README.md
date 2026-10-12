@@ -37,7 +37,7 @@ Each of these is a design decision, and each one shows up in system design inter
 | 00 · test harness | ✅ |
 | 01 · in-memory algorithms | ✅ |
 | 02 · single-node middleware | ✅ |
-| 03 · Redis + Lua | planned |
+| 03 · Redis + Lua | ✅ |
 | 04 · Redis Cluster scaling | planned |
 | 05 · edge rate limiting | planned |
 | 06 · interview write-up | planned |
@@ -76,6 +76,32 @@ each replica's memory. ([phase 02](02-single-node-middleware/README.md))
 
 Every replica sees a third of the traffic and never reaches its own limit. A client also sees
 `remaining` jump between replies, because each reply comes from a different replica's count.
+
+### 3. One Redis, and why the check must be atomic
+
+The same three replicas, now sharing one Redis. 200 requests on one key arrive at once, limit
+100. ([phase 03](03-redis-centralized/README.md))
+
+| How the replica talks to Redis | Admitted |
+|---|---|
+| GET the count, compare in Python, INCRBY | **117** |
+| INCRBY first, compare after (fixed window) | 100, but 200 around a window reset |
+| One Lua script: read, decide, write (sliding window counter) | 100, and 102 around a reset |
+
+With Lua the three replicas are as exact as one process was in phase 1. Redis adds about
+1–2 ms at p95.
+
+### 4. When Redis stops answering
+
+The harness pauses Redis while sending requests. Each route follows its own policy:
+
+| Route | Policy | Result |
+|---|---|---|
+| `/items` | fail open | 10 / 10 answered 200, slowest 59 ms |
+| `/orders` | fail closed | 10 / 10 answered 503 with `Retry-After` |
+| `/search` | local fallback | each replica limits at a third of the global limit |
+
+A 50 ms timeout and a circuit breaker keep a dead Redis from slowing every request down.
 
 ---
 
@@ -138,7 +164,14 @@ $env:HARNESS_ENV_FILE = "../02-single-node-middleware/harness/single-replica.env
 .\.venv\Scripts\locust.exe -f load/locustfile.py --headless --host http://localhost:8080 --only-summary
 ```
 
-Each phase README lists its setups and settings files.
+Swap the folder and the settings file for any other setup:
+
+| Setup | Start | Harness settings |
+|---|---|---|
+| 02 · one or three replicas | `docker compose up -d --build --wait` (`$env:API_REPLICAS="3"` for three) | `harness/single-replica.env`, `three-replicas.env`, `fixed-window.env` |
+| 03 · Redis + Lua | `docker compose up -d --build --wait` | `harness/redis-lua.env`, `naive.env`, `incr.env` |
+
+Each phase README lists the exact settings for every variant.
 
 ### Clean up
 
@@ -161,6 +194,7 @@ rate-limiting-patterns/
 │   └── load/                  Locust user + load shape
 ├── 01-in-memory-algorithms/   six algorithms, property tests, benchmark
 ├── 02-single-node-middleware/ FastAPI middleware, policies.yaml, nginx, 1 or 3 replicas
+├── 03-redis-centralized/      Lua scripts, failure policy + circuit breaker, Prometheus, Grafana
 ├── docs/images/               diagrams (.excalidraw source + .png)
 └── ruff.toml, LICENSE
 ```

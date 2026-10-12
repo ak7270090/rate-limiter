@@ -1,0 +1,66 @@
+{
+  "uid": "ratelab-limiter",
+  "title": "Rate limiter",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": {"from": "now-15m", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Decisions per second by route and outcome",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (route, decision) (rate(ratelab_decisions_total[30s]))",
+          "legendFormat": "{{route}} {{decision}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Limiter p95 latency by route",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (route, le) (rate(ratelab_limiter_seconds_bucket[30s])))",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Redis failures per second by route and action",
+      "gridPos": {"x": 0, "y": 9, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (route, action) (rate(ratelab_store_failures_total[30s]))",
+          "legendFormat": "{{route}} {{action}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Admitted per second by replica",
+      "gridPos": {"x": 12, "y": 9, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (instance) (rate(ratelab_decisions_total{decision=\"allowed\"}[30s]))",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    }
+  ]
+}

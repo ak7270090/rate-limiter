@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  # One target per API replica: Docker DNS returns every replica's IP for "api".
+  - job_name: ratelab-api
+    dns_sd_configs:
+      - names: ["api"]
+        type: A
+        port: 8000
+        refresh_interval: 10s
