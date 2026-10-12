@@ -35,12 +35,33 @@ Each of these is a design decision, and each one shows up in system design inter
 | Phase | Status |
 |---|---|
 | 00 · test harness | ✅ |
-| 01 · in-memory algorithms | planned |
+| 01 · in-memory algorithms | ✅ |
 | 02 · single-node middleware | planned |
 | 03 · Redis + Lua | planned |
 | 04 · Redis Cluster scaling | planned |
 | 05 · edge rate limiting | planned |
 | 06 · interview write-up | planned |
+
+---
+
+## Results
+
+### 1. Six algorithms, one burst test
+
+Limit: 100 requests per 10 s. A client sends 100 requests 0.5 s before a fixed window resets and
+100 more 0.2 s after it. ([full table](01-in-memory-algorithms/results/algorithm-comparison.md))
+
+| Algorithm | Admitted | Bytes per key |
+|---|---|---|
+| fixed window | **200** | 173 |
+| sliding window log | 100 | **1,377** |
+| sliding window counter | 102 | 169 |
+| token bucket / leaky bucket | 107 | 161 |
+| GCRA | 107 | 113 |
+
+Only the log is exact, and it stores a timestamp per request. The sliding window counter gets
+within 2% with two counters. The buckets and GCRA admit 100 plus the 7 tokens that refilled
+between the bursts, exactly their rule. The fixed window doubles the limit.
 
 ---
 
@@ -96,6 +117,7 @@ rate-limiting-patterns/
 │   ├── tests/suites/          the seven behaviour checks, one pytest marker each
 │   ├── tests/unit/            harness self-tests against an in-process stub API
 │   └── load/                  Locust user + load shape
+├── 01-in-memory-algorithms/   six algorithms, property tests, benchmark
 ├── docs/images/               diagrams (.excalidraw source + .png)
 └── ruff.toml, LICENSE
 ```
