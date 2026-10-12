@@ -1,4 +1,4 @@
-import httpx
+import aiohttp
 import pytest
 
 from rateharness.client_factory import create_api_key
@@ -12,7 +12,7 @@ pytestmark = [pytest.mark.anyio, pytest.mark.headers]
 
 
 async def test_rate_limit_headers_are_present_and_consistent(
-    http_client: httpx.AsyncClient,
+    http_session: aiohttp.ClientSession,
     harness_settings: HarnessSettings,
     harness_report: HarnessReport,
     request: pytest.FixtureRequest,
@@ -25,7 +25,7 @@ async def test_rate_limit_headers_are_present_and_consistent(
     )
 
     responses = await send_sequential(
-        http_client, target, create_api_key("headers"), harness_settings.header_request_count
+        http_session, target, create_api_key("headers"), harness_settings.header_request_count
     )
     problems = find_header_problems(responses, expected)
     rejected = sum(1 for response in responses if response.status_code == STATUS_TOO_MANY_REQUESTS)

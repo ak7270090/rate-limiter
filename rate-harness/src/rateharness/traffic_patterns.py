@@ -5,8 +5,9 @@ import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
+import aiohttp
 import anyio
-import httpx
+from multidict import CIMultiDict
 
 from rateharness.client_factory import build_api_key_headers
 from rateharness.constants import REPLICA_ID_HEADER
@@ -19,7 +20,7 @@ class ObservedResponse:
     sent_at: float
     elapsed_seconds: float
     status_code: int
-    headers: httpx.Headers
+    headers: CIMultiDict[str]
 
     @property
     def replica_id(self) -> str | None:
@@ -35,30 +36,31 @@ class RequestTarget:
 
 
 async def send_request(
-    client: httpx.AsyncClient, target: RequestTarget, api_key: str
+    session: aiohttp.ClientSession, target: RequestTarget, api_key: str
 ) -> ObservedResponse:
     """Send one request and record its timing."""
     sent_at = time.perf_counter()
-    response = await client.request(
+    async with session.request(
         target.method, target.path, headers=build_api_key_headers(api_key)
-    )
+    ) as response:
+        await response.read()
     return ObservedResponse(
         sent_at=sent_at,
         elapsed_seconds=time.perf_counter() - sent_at,
-        status_code=response.status_code,
-        headers=response.headers,
+        status_code=response.status,
+        headers=CIMultiDict(response.headers),
     )
 
 
 async def send_sequential(
-    client: httpx.AsyncClient, target: RequestTarget, api_key: str, request_count: int
+    session: aiohttp.ClientSession, target: RequestTarget, api_key: str, request_count: int
 ) -> list[ObservedResponse]:
     """Send requests one after another, each waiting for the previous response."""
-    return [await send_request(client, target, api_key) for _ in range(request_count)]
+    return [await send_request(session, target, api_key) for _ in range(request_count)]
 
 
 async def send_steady(
-    client: httpx.AsyncClient,
+    session: aiohttp.ClientSession,
     target: RequestTarget,
     api_key: str,
     request_count: int,
@@ -73,12 +75,12 @@ async def send_steady(
             delay_seconds = started_at + request_index * interval_seconds - time.perf_counter()
             if delay_seconds > 0:
                 await anyio.sleep(delay_seconds)
-            task_group.start_soon(_send_and_collect, client, target, api_key, responses)
+            task_group.start_soon(_send_and_collect, session, target, api_key, responses)
     return sorted(responses, key=lambda response: response.sent_at)
 
 
 async def send_parallel(
-    client: httpx.AsyncClient,
+    session: aiohttp.ClientSession,
     target: RequestTarget,
     api_keys: Sequence[str],
     max_parallel_requests: int,
@@ -89,13 +91,13 @@ async def send_parallel(
     async with anyio.create_task_group() as task_group:
         for api_key in api_keys:
             task_group.start_soon(
-                _send_with_capacity_limit, client, target, api_key, responses, capacity_limiter
+                _send_with_capacity_limit, session, target, api_key, responses, capacity_limiter
             )
     return sorted(responses, key=lambda response: response.sent_at)
 
 
 async def send_fan_out(
-    client: httpx.AsyncClient, target: RequestTarget, api_key: str, client_count: int
+    session: aiohttp.ClientSession, target: RequestTarget, api_key: str, client_count: int
 ) -> list[ObservedResponse]:
     """Release ``client_count`` requests for the same key at the same instant."""
     responses: list[ObservedResponse] = []
@@ -103,7 +105,7 @@ async def send_fan_out(
     async with anyio.create_task_group() as task_group:
         for _ in range(client_count):
             task_group.start_soon(
-                _send_after_signal, client, target, api_key, responses, start_signal
+                _send_after_signal, session, target, api_key, responses, start_signal
             )
         await anyio.sleep(0.05)
         start_signal.set()
@@ -111,7 +113,7 @@ async def send_fan_out(
 
 
 async def send_boundary_straddle(
-    client: httpx.AsyncClient,
+    session: aiohttp.ClientSession,
     target: RequestTarget,
     api_key: str,
     burst_size: int,
@@ -129,9 +131,9 @@ async def send_boundary_straddle(
     boundary = next_window_boundary(wall_clock(), window_seconds, lead_seconds)
     await anyio.sleep(max(boundary - lead_seconds - wall_clock(), 0.0))
     burst_keys = [api_key] * burst_size
-    before = await send_parallel(client, target, burst_keys, max_parallel_requests)
+    before = await send_parallel(session, target, burst_keys, max_parallel_requests)
     await anyio.sleep(max(boundary + after_seconds - wall_clock(), 0.0))
-    after = await send_parallel(client, target, burst_keys, max_parallel_requests)
+    after = await send_parallel(session, target, burst_keys, max_parallel_requests)
     return before + after
 
 
@@ -144,31 +146,31 @@ def next_window_boundary(now: float, window_seconds: float, minimum_lead_seconds
 
 
 async def _send_and_collect(
-    client: httpx.AsyncClient,
+    session: aiohttp.ClientSession,
     target: RequestTarget,
     api_key: str,
     responses: list[ObservedResponse],
 ) -> None:
-    responses.append(await send_request(client, target, api_key))
+    responses.append(await send_request(session, target, api_key))
 
 
 async def _send_with_capacity_limit(
-    client: httpx.AsyncClient,
+    session: aiohttp.ClientSession,
     target: RequestTarget,
     api_key: str,
     responses: list[ObservedResponse],
     capacity_limiter: anyio.CapacityLimiter,
 ) -> None:
     async with capacity_limiter:
-        responses.append(await send_request(client, target, api_key))
+        responses.append(await send_request(session, target, api_key))
 
 
 async def _send_after_signal(
-    client: httpx.AsyncClient,
+    session: aiohttp.ClientSession,
     target: RequestTarget,
     api_key: str,
     responses: list[ObservedResponse],
     start_signal: anyio.Event,
 ) -> None:
     await start_signal.wait()
-    responses.append(await send_request(client, target, api_key))
+    responses.append(await send_request(session, target, api_key))

@@ -1,4 +1,4 @@
-import httpx
+import aiohttp
 import pytest
 
 from rateharness.client_factory import create_api_key
@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.anyio, pytest.mark.accuracy]
 
 
 async def test_steady_traffic_on_one_key_stays_within_limit(
-    http_client: httpx.AsyncClient,
+    http_session: aiohttp.ClientSession,
     harness_settings: HarnessSettings,
     harness_report: HarnessReport,
     request: pytest.FixtureRequest,
@@ -20,7 +20,7 @@ async def test_steady_traffic_on_one_key_stays_within_limit(
     policy = LimitPolicy(harness_settings.per_key_limit, harness_settings.per_key_window_seconds)
 
     responses = await send_steady(
-        http_client,
+        http_session,
         target,
         create_api_key("accuracy"),
         harness_settings.accuracy_request_count,

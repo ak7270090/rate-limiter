@@ -1,8 +1,8 @@
 import shlex
 import subprocess
 
+import aiohttp
 import anyio
-import httpx
 import pytest
 
 from rateharness.client_factory import create_api_key
@@ -23,7 +23,7 @@ def count_status(responses: list[ObservedResponse], status_code: int) -> int:
 
 
 async def test_store_outage_follows_fail_open_and_fail_closed_policy(
-    http_client: httpx.AsyncClient,
+    http_session: aiohttp.ClientSession,
     harness_settings: HarnessSettings,
     harness_report: HarnessReport,
     request: pytest.FixtureRequest,
@@ -40,17 +40,17 @@ async def test_store_outage_follows_fail_open_and_fail_closed_policy(
     try:
         await anyio.sleep(harness_settings.failover_settle_seconds)
         open_responses = await send_sequential(
-            http_client, fail_open, create_api_key("failover"), request_count
+            http_session, fail_open, create_api_key("failover"), request_count
         )
         closed_responses = await send_sequential(
-            http_client, fail_closed, create_api_key("failover"), request_count
+            http_session, fail_closed, create_api_key("failover"), request_count
         )
     finally:
         run_chaos_command(
             harness_settings.restore_command, harness_settings.command_timeout_seconds
         )
         await anyio.sleep(harness_settings.restore_settle_seconds)
-    recovered = await send_sequential(http_client, fail_closed, create_api_key("failover"), 1)
+    recovered = await send_sequential(http_session, fail_closed, create_api_key("failover"), 1)
     slowest_seconds = max(r.elapsed_seconds for r in open_responses + closed_responses)
 
     harness_report.record(

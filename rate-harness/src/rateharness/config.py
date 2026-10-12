@@ -20,6 +20,7 @@ class HarnessSettings(BaseSettings):
     tolerance_percent: float = 5.0
     request_timeout_seconds: float = 10.0
     max_parallel_requests: int = 50
+    connection_pool_size: int = 200
 
     per_key_method: str = "GET"
     per_key_route: str = "/items"

@@ -1,4 +1,4 @@
-import httpx
+from multidict import CIMultiDict
 
 from rateharness.header_checks import (
     ExpectedHeaderPolicy,
@@ -18,7 +18,7 @@ def make_response(status_code: int, remaining: int, retry_after: str | None = No
     }
     if retry_after is not None:
         headers["Retry-After"] = retry_after
-    return ObservedResponse(0.0, 0.001, status_code, httpx.Headers(headers))
+    return ObservedResponse(0.0, 0.001, status_code, CIMultiDict(headers))
 
 
 def test_parse_structured_item_reads_name_and_parameters() -> None:
@@ -45,13 +45,13 @@ def test_consistent_sequence_has_no_problems() -> None:
 
 
 def test_problems_are_reported() -> None:
-    missing = ObservedResponse(0.0, 0.001, 200, httpx.Headers({}))
+    missing = ObservedResponse(0.0, 0.001, 200, CIMultiDict({}))
     responses = [
         make_response(200, 1),
         make_response(200, 50),
         make_response(429, 3, retry_after="0.5"),
         missing,
-        ObservedResponse(0.0, 0.001, 500, httpx.Headers({})),
+        ObservedResponse(0.0, 0.001, 500, CIMultiDict({})),
     ]
 
     problems = find_header_problems(responses, ExpectedHeaderPolicy("other", 100, 10))

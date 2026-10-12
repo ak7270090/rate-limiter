@@ -1,6 +1,6 @@
 import statistics
 
-import httpx
+import aiohttp
 import pytest
 
 from rateharness.client_factory import create_api_key
@@ -18,7 +18,7 @@ def p95_milliseconds(responses: list[ObservedResponse]) -> float:
 
 
 async def test_limiting_adds_little_latency(
-    http_client: httpx.AsyncClient,
+    http_session: aiohttp.ClientSession,
     harness_settings: HarnessSettings,
     harness_report: HarnessReport,
     request: pytest.FixtureRequest,
@@ -28,12 +28,12 @@ async def test_limiting_adds_little_latency(
     sample_count = harness_settings.latency_sample_count
 
     baseline = await send_sequential(
-        http_client, baseline_target, create_api_key("latency"), sample_count
+        http_session, baseline_target, create_api_key("latency"), sample_count
     )
     limited: list[ObservedResponse] = []
     while len(limited) < sample_count:
         limited += await send_sequential(
-            http_client, limited_target, create_api_key("latency"), REQUESTS_PER_KEY
+            http_session, limited_target, create_api_key("latency"), REQUESTS_PER_KEY
         )
     baseline_p95 = p95_milliseconds(baseline)
     limited_p95 = p95_milliseconds(limited)

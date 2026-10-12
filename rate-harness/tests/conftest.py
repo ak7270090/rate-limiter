@@ -2,7 +2,7 @@ from collections.abc import AsyncIterator, Generator
 
 import pytest
 
-from rateharness.client_factory import create_http_client
+from rateharness.client_factory import create_http_session, open_connections
 from rateharness.config import HarnessSettings, load_harness_settings
 from rateharness.constants import (
     ALL_SUITES,
@@ -32,9 +32,12 @@ def harness_report() -> HarnessReport:
 
 
 @pytest.fixture
-async def http_client(harness_settings: HarnessSettings) -> AsyncIterator:
-    async with create_http_client(harness_settings) as client:
-        yield client
+async def http_session(harness_settings: HarnessSettings) -> AsyncIterator:
+    async with create_http_session(harness_settings) as session:
+        await open_connections(
+            session, harness_settings.connection_pool_size, harness_settings.baseline_route
+        )
+        yield session
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:

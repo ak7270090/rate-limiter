@@ -1,5 +1,5 @@
-import httpx
 import pytest
+from multidict import CIMultiDict
 
 from rateharness.limit_accuracy import LimitPolicy, max_admitted_in_window, summarize_admissions
 from rateharness.traffic_patterns import ObservedResponse
@@ -10,7 +10,7 @@ def make_response(sent_at: float, status_code: int, replica: str = "r1") -> Obse
         sent_at=sent_at,
         elapsed_seconds=0.001,
         status_code=status_code,
-        headers=httpx.Headers({"X-Replica-Id": replica}),
+        headers=CIMultiDict({"X-Replica-Id": replica}),
     )
 
 

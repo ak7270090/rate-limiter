@@ -1,4 +1,4 @@
-import httpx
+import aiohttp
 import pytest
 
 from rateharness.client_factory import create_api_key
@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.anyio, pytest.mark.concurrency]
 
 
 async def test_parallel_requests_on_one_key_stay_within_limit(
-    http_client: httpx.AsyncClient,
+    http_session: aiohttp.ClientSession,
     harness_settings: HarnessSettings,
     harness_report: HarnessReport,
     request: pytest.FixtureRequest,
@@ -20,7 +20,7 @@ async def test_parallel_requests_on_one_key_stay_within_limit(
     policy = LimitPolicy(harness_settings.per_key_limit, harness_settings.per_key_window_seconds)
 
     responses = await send_fan_out(
-        http_client,
+        http_session,
         target,
         create_api_key("concurrency"),
         harness_settings.concurrency_client_count,
