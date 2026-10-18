@@ -49,7 +49,8 @@ Harness reports in [results/](results/), 3 API replicas for every run.
   the same count before any of them writes.
 - **INCRBY first is exact** without Lua, but it is still a fixed window, so it doubles the limit
   around a reset. Lua is what lets the better algorithms run atomically.
-- **The same three replicas that let 150 of 150 through in phase 2** now let exactly 100 through.
+- **Three replicas with their own in-memory counts would each see a third of the traffic and let**
+  **about 300 through a limit of 100**; sharing one Redis, they let exactly 100 through.
 
 ### Every algorithm on Redis
 

@@ -13,7 +13,7 @@ for Envoy's global limit: the rate limit service only has second / minute / hour
 | nginx `limit_req` x2 | **150** | **200** | **200** | **600** | 3.4 vs 3.4 ms | none |
 
 - **Anything counted per instance multiplies by the instance count**: two nginx or two Envoy local
-  buckets let 600 through a 300 limit, exactly like phase 2's in-memory replicas.
+  buckets let 600 through a 300 limit, exactly like API replicas that each count in memory.
 - **The rate limit service is exact across Envoys** but counts in fixed windows (200 around a
   minute boundary).
 - nginx's leaky bucket admits the burst plus the drain rate: 130 of 150 at 50/s (100 + 10/s x 3 s),

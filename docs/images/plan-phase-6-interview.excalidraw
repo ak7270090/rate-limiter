@@ -16,7 +16,7 @@
 
     {"type": "ellipse", "id": "d2", "x": 302, "y": 220, "width": 20, "height": 20, "strokeColor": "#3b82f6", "backgroundColor": "#3b82f6", "fillStyle": "solid", "roughness": 0},
     {"type": "text", "id": "d2_h", "x": 280, "y": 130, "width": 230, "height": 70, "text": "2 API +\nheaders\n3 min", "originalText": "2 API +\nheaders\n3 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},
-    {"type": "text", "id": "d2_b", "x": 280, "y": 256, "width": 230, "height": 72, "text": "429, Retry-After,\nRateLimit-Policy\n\nfrom phase 02", "originalText": "429, Retry-After,\nRateLimit-Policy\n\nfrom phase 02", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
+    {"type": "text", "id": "d2_b", "x": 280, "y": 256, "width": 230, "height": 72, "text": "429, Retry-After,\nRateLimit-Policy\n\nfrom phase 03", "originalText": "429, Retry-After,\nRateLimit-Policy\n\nfrom phase 03", "fontSize": 14, "fontFamily": 3, "strokeColor": "#64748b", "roughness": 1},
 
     {"type": "ellipse", "id": "d3", "x": 542, "y": 220, "width": 20, "height": 20, "strokeColor": "#3b82f6", "backgroundColor": "#3b82f6", "fillStyle": "solid", "roughness": 0},
     {"type": "text", "id": "d3_h", "x": 520, "y": 130, "width": 230, "height": 70, "text": "3 algorithm\n\n7 min", "originalText": "3 algorithm\n\n7 min", "fontSize": 16, "fontFamily": 3, "strokeColor": "#1e40af", "roughness": 1},

@@ -23,7 +23,7 @@ Each of these is a design decision, and each one shows up in system design inter
 
 ## What this lab does
 
-<p align="center"><img src="docs/images/plan-overview.png" alt="Six phases in a row: 01 in-memory, 02 middleware, 03 Redis and Lua, 04 cluster, 05 edge, 06 write-up; the rate-harness sends the same HTTP suites and load to phases 02 to 05; panels show the five standard routes with their limits and an example 429 response with Retry-After and RateLimit headers" width="100%"></p>
+<p align="center"><img src="docs/images/plan-overview.png" alt="Phases in a row: 01 in-memory, a skipped step noting that a count per replica allows three times the limit, 03 Redis and Lua, 04 cluster, 05 edge, 06 write-up; the rate-harness sends the same HTTP suites and load to phases 03 to 05; panels show the five standard routes with their limits and an example 429 response with Retry-After and RateLimit headers" width="100%"></p>
 
 - 🧪 **One test harness for every setup.** Steady traffic, a burst on each side of a window reset,
   200 clients at the same instant, a global limit shared by all keys, the response headers, a
@@ -36,7 +36,6 @@ Each of these is a design decision, and each one shows up in system design inter
 |---|---|
 | 00 · test harness | ✅ |
 | 01 · in-memory algorithms | ✅ |
-| 02 · single-node middleware | ✅ |
 | 03 · Redis + Lua | ✅ |
 | 04 · Redis Cluster scaling | ✅ |
 | 05 · edge rate limiting | ✅ |
@@ -63,24 +62,21 @@ Only the log is exact, and it stores a timestamp per request. The sliding window
 within 2% with two counters. The buckets and GCRA admit 100 plus the 7 tokens that refilled
 between the bursts, exactly their rule. The fixed window doubles the limit.
 
-### 2. Three replicas, three limits
+### 2. Why each server can't keep its own count
 
-The same API and the same limit (100 per 10 s per key) behind nginx, with the limiter's state in
-each replica's memory. ([phase 02](02-single-node-middleware/README.md))
+Phase 01's limiters count inside one process. Run three copies of the API behind a load balancer
+and each copy sees only about a third of a client's requests, so each one stays under its own
+limit: a limit of 100 per key really allows about 300, and it changes every time you add or remove
+a copy. A client also sees `remaining` jump around, because each reply comes from a different
+copy's count.
 
-| Traffic on one key | 1 replica | 3 replicas |
-|---|---|---|
-| 150 requests at 50/s | 100 | **150** |
-| 200 requests at once | 100 | **200** |
-| 600 requests on a 300 global limit | 300 | **600** |
-
-Every replica sees a third of the traffic and never reaches its own limit. A client also sees
-`remaining` jump between replies, because each reply comes from a different replica's count.
+So the count has to live in one place that every copy reads and updates in a single step. That
+is the next phase: a centralized Redis.
 
 ### 3. One Redis, and why the check must be atomic
 
-The same three replicas, now sharing one Redis. 200 requests on one key arrive at once, limit
-100. ([phase 03](03-redis-centralized/README.md))
+Three API replicas sharing one Redis. 200 requests on one key arrive at once, limit 100.
+([phase 03](03-redis-centralized/README.md))
 
 | How the replica talks to Redis | Admitted |
 |---|---|
@@ -137,8 +133,8 @@ limits. ([phase 05](05-edge-rate-limiting/README.md))
 | Envoy x2, local token bucket | – | **600** |
 | nginx `limit_req` x2 | **200** | **600** |
 
-A limit counted per proxy instance multiplies by the number of instances, just like phase 2's
-in-memory replicas. Envoy's rate limit service is exact across Envoys but counts in fixed
+A limit counted per proxy instance multiplies by the number of instances, for the same reason as
+in section 2. Envoy's rate limit service is exact across Envoys but counts in fixed
 windows (200 through around a minute boundary). The app is the only place with tiers (per key,
 per endpoint, per user, global, daily quota, all charged only if all allow) and a shadow mode
 that recorded 823 would-be rejections without enforcing one.
@@ -195,11 +191,11 @@ python -m venv .venv
 ### Start one setup and test it
 
 ```powershell
-cd ..\02-single-node-middleware
-docker compose up -d --build --wait           # API + nginx on :8080
+cd ..\03-redis-centralized
+docker compose up -d --build --wait           # Redis + 3 API replicas + nginx on :8080
 
 cd ..\rate-harness
-$env:HARNESS_ENV_FILE = "../02-single-node-middleware/harness/single-replica.env"
+$env:HARNESS_ENV_FILE = "../03-redis-centralized/harness/redis-lua.env"
 .\.venv\Scripts\python.exe -m pytest tests/suites -rxXs
 .\.venv\Scripts\locust.exe -f load/locustfile.py --headless --host http://localhost:8080 --only-summary
 ```
@@ -208,7 +204,6 @@ Swap the folder and the settings file for any other setup:
 
 | Setup | Start | Harness settings |
 |---|---|---|
-| 02 · one or three replicas | `docker compose up -d --build --wait` (`$env:API_REPLICAS="3"` for three) | `harness/single-replica.env`, `three-replicas.env`, `fixed-window.env` |
 | 03 · Redis + Lua | `docker compose up -d --build --wait` | `harness/redis-lua.env`, `naive.env`, `incr.env` |
 | 04 · Redis Cluster / Sentinel | `docker compose -f compose.yaml -f compose.cluster.yaml up -d --build --wait` (or `compose.sentinel.yaml`) | `harness/cluster.env`, `sentinel.env` |
 | 05 · edge | `docker compose up -d --build --wait` (ports 8080–8084, one per path) | `harness/app.env`, `envoy-global.env`, `envoy-local.env`, `nginx-edge.env` |
@@ -235,7 +230,6 @@ rate-limiting-patterns/
 │   ├── tests/unit/            harness self-tests against an in-process stub API
 │   └── load/                  Locust user + load shape
 ├── 01-in-memory-algorithms/   six algorithms, property tests, benchmark
-├── 02-single-node-middleware/ FastAPI middleware, policies.yaml, nginx, 1 or 3 replicas
 ├── 03-redis-centralized/      Lua scripts, failure policy + circuit breaker, Prometheus, Grafana
 ├── 04-redis-cluster-scaling/  Redis Cluster and Sentinel, hot key split / lease, failover timelines
 ├── 05-edge-rate-limiting/     tiered limits + shadow mode in the app; nginx, Envoy, envoyproxy/ratelimit

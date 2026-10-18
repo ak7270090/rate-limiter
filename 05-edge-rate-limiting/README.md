@@ -56,7 +56,7 @@ From [results/edge-comparison.md](results/edge-comparison.md), limits `/items` 1
 | nginx `limit_req` x2 | **200** | **200** | **600** | none |
 
 - **Per-instance counters multiply with the instances.** Two nginx or two Envoy local buckets let
-  600 through a 300 limit, the same failure as phase 2's three in-memory replicas. They work as a
+  600 through a 300 limit, the same failure as API replicas that each count in memory. They work as a
   coarse per-instance shield, not as the limit.
 - **Envoy + the rate limit service is exact across Envoys**, but counts in fixed windows of one
   second / minute / hour / day: 200 got through around a minute boundary. A 10-second window
