@@ -1,0 +1,46 @@
+# One entry per limited route. Routes not listed here (/ping, /healthz, /metrics) are not limited.
+# on_store_failure: allow (fail open), reject (fail closed, 503), or local (each replica counts
+# on its own at limit / replicas while Redis is down).
+# hot_key_strategy: none, split (split_count sub-keys on different shards) or lease (each replica
+# takes lease_size tokens per Redis call, unused ones expire after lease_ttl_seconds).
+routes:
+  - name: items
+    method: GET
+    path: /items
+    algorithm: sliding_window_counter
+    limit: 100
+    window_seconds: 10
+    scope: per_key
+    on_store_failure: allow
+
+  - name: orders
+    method: POST
+    path: /orders
+    algorithm: token_bucket
+    limit: 10
+    window_seconds: 60
+    burst: 5
+    scope: per_key
+    on_store_failure: reject
+
+  - name: search
+    method: GET
+    path: /search
+    algorithm: sliding_window_counter
+    limit: 300
+    window_seconds: 10
+    scope: global
+    on_store_failure: local
+    hot_key_strategy: none
+    split_count: 10
+    lease_size: 30
+    lease_ttl_seconds: 1.0
+
+  - name: reports
+    method: POST
+    path: /reports
+    algorithm: fixed_window
+    limit: 50
+    window_seconds: 86400
+    scope: per_key
+    on_store_failure: reject

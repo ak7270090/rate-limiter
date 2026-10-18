@@ -1,0 +1,69 @@
+# One primary, one replica, three Sentinels (quorum 2, primary declared down after 2 s).
+# docker compose -f compose.yaml -f compose.sentinel.yaml up -d --build --wait
+#
+# Addresses are IPs, resolved once at container start. With hostnames, a stopped container's name
+# took 8 s to fail on Docker's DNS; Redis resolves on its main thread, so the Sentinel froze,
+# marked every peer down, entered TILT mode and never failed over.
+
+x-sentinel: &sentinel
+  image: redis:7.4-alpine
+  depends_on:
+    redis-primary: {condition: service_healthy}
+  command:
+    - sh
+    - -c
+    - >-
+      primary_ip=$$(getent hosts redis-primary | cut -d' ' -f1) &&
+      printf '%s\n'
+      'port 26379'
+      "sentinel monitor ratelab-primary $$primary_ip 6379 2"
+      'sentinel down-after-milliseconds ratelab-primary 2000'
+      'sentinel failover-timeout ratelab-primary 10000'
+      'sentinel parallel-syncs ratelab-primary 1'
+      > /tmp/sentinel.conf && exec redis-sentinel /tmp/sentinel.conf
+  healthcheck:
+    test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+    interval: 3s
+    timeout: 3s
+    retries: 10
+
+services:
+  redis-primary:
+    image: redis:7.4-alpine
+    hostname: redis-primary
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis-replica:
+    image: redis:7.4-alpine
+    hostname: redis-replica
+    command:
+      - sh
+      - -c
+      - >-
+        exec redis-server --save '' --appendonly no
+        --replicaof $$(getent hosts redis-primary | cut -d' ' -f1) 6379
+    depends_on:
+      redis-primary: {condition: service_healthy}
+
+  sentinel-1:
+    <<: *sentinel
+    hostname: sentinel-1
+  sentinel-2:
+    <<: *sentinel
+    hostname: sentinel-2
+  sentinel-3:
+    <<: *sentinel
+    hostname: sentinel-3
+
+  api:
+    environment:
+      RATELAB_REDIS_MODE: sentinel
+    depends_on:
+      sentinel-1: {condition: service_healthy}
+      sentinel-2: {condition: service_healthy}
+      sentinel-3: {condition: service_healthy}

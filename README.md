@@ -38,7 +38,7 @@ Each of these is a design decision, and each one shows up in system design inter
 | 01 · in-memory algorithms | ✅ |
 | 02 · single-node middleware | ✅ |
 | 03 · Redis + Lua | ✅ |
-| 04 · Redis Cluster scaling | planned |
+| 04 · Redis Cluster scaling | ✅ |
 | 05 · edge rate limiting | planned |
 | 06 · interview write-up | planned |
 
@@ -102,6 +102,28 @@ The harness pauses Redis while sending requests. Each route follows its own poli
 | `/search` | local fallback | each replica limits at a third of the global limit |
 
 A 50 ms timeout and a circuit breaker keep a dead Redis from slowing every request down.
+
+### 5. One hot key, and a primary that dies
+
+`/search` has one limit for all callers, so on Redis Cluster every call lands on one shard.
+([phase 04](04-redis-cluster-scaling/README.md))
+
+| Lua script straight against Redis | Calls/s |
+|---|---|
+| cluster, one hot key | 39,297, one primary busy, two idle |
+| cluster, hot key split into 10 sub-keys | 63,109, all three primaries busy |
+
+Through the API (600 requests, limit 300) both fixes stay exact: splitting spreads the 600 Redis
+calls over three primaries, and leasing 30 tokens per call cuts them to **16**.
+
+Then the primary holding a key is stopped while that key sends 20 requests/s:
+
+<p align="center"><img src="04-redis-cluster-scaling/docs/failover-timelines.png" alt="Four timelines of requests per second. Cluster with hostnames: 30 requests fail at 13-14 s, then every request is admitted until 38 s. Cluster with IP addresses: requests are admitted from 10 to 18 s, then limiting at 10 per second resumes at 19 s. Sentinel with hostnames: almost every request fails from 15 to 25 s and no failover happens. Sentinel with IP addresses: admitted from 10 to 18 s, limiting resumes at 19 s" width="100%"></p>
+
+With IP addresses both setups fail open for about 9 s and then limit again. With hostnames, a
+lookup of the stopped node's name took 8 s on Docker's DNS: the lookups filled the API's resolver
+threads, so the limit went unenforced for 24 s on the cluster, and the Sentinel itself froze and
+never failed over.
 
 ---
 
@@ -170,6 +192,7 @@ Swap the folder and the settings file for any other setup:
 |---|---|---|
 | 02 · one or three replicas | `docker compose up -d --build --wait` (`$env:API_REPLICAS="3"` for three) | `harness/single-replica.env`, `three-replicas.env`, `fixed-window.env` |
 | 03 · Redis + Lua | `docker compose up -d --build --wait` | `harness/redis-lua.env`, `naive.env`, `incr.env` |
+| 04 · Redis Cluster / Sentinel | `docker compose -f compose.yaml -f compose.cluster.yaml up -d --build --wait` (or `compose.sentinel.yaml`) | `harness/cluster.env`, `sentinel.env` |
 
 Each phase README lists the exact settings for every variant.
 
@@ -195,6 +218,7 @@ rate-limiting-patterns/
 ├── 01-in-memory-algorithms/   six algorithms, property tests, benchmark
 ├── 02-single-node-middleware/ FastAPI middleware, policies.yaml, nginx, 1 or 3 replicas
 ├── 03-redis-centralized/      Lua scripts, failure policy + circuit breaker, Prometheus, Grafana
+├── 04-redis-cluster-scaling/  Redis Cluster and Sentinel, hot key split / lease, failover timelines
 ├── docs/images/               diagrams (.excalidraw source + .png)
 └── ruff.toml, LICENSE
 ```

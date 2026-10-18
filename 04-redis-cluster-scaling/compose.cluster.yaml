@@ -1,0 +1,73 @@
+# Redis Cluster: 3 primaries + 3 replicas. Nodes advertise their IPs (the default endpoint type):
+# with hostnames, every lookup of a stopped node's name took 8 s on Docker's DNS and filled
+# asyncio's resolver threads, so the API could not reach the healthy nodes either.
+# docker compose -f compose.yaml -f compose.cluster.yaml up -d --build --wait
+
+x-redis-node: &redis-node
+  image: redis:7.4-alpine
+  command:
+    - sh
+    - -c
+    - >-
+      exec redis-server --save '' --appendonly no
+      --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 2000
+      --cluster-announce-hostname $$NODE_NAME
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 3s
+    timeout: 3s
+    retries: 10
+
+services:
+  redis-node-1:
+    <<: *redis-node
+    hostname: redis-node-1
+    environment: {NODE_NAME: redis-node-1}
+  redis-node-2:
+    <<: *redis-node
+    hostname: redis-node-2
+    environment: {NODE_NAME: redis-node-2}
+  redis-node-3:
+    <<: *redis-node
+    hostname: redis-node-3
+    environment: {NODE_NAME: redis-node-3}
+  redis-node-4:
+    <<: *redis-node
+    hostname: redis-node-4
+    environment: {NODE_NAME: redis-node-4}
+  redis-node-5:
+    <<: *redis-node
+    hostname: redis-node-5
+    environment: {NODE_NAME: redis-node-5}
+  redis-node-6:
+    <<: *redis-node
+    hostname: redis-node-6
+    environment: {NODE_NAME: redis-node-6}
+
+  redis-cluster-init:
+    image: redis:7.4-alpine
+    depends_on:
+      redis-node-1: {condition: service_healthy}
+      redis-node-2: {condition: service_healthy}
+      redis-node-3: {condition: service_healthy}
+      redis-node-4: {condition: service_healthy}
+      redis-node-5: {condition: service_healthy}
+      redis-node-6: {condition: service_healthy}
+    command:
+      - sh
+      - -c
+      - >-
+        if redis-cli -h redis-node-1 cluster info | grep -q cluster_state:ok; then exit 0; fi;
+        nodes="";
+        for name in redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5 redis-node-6; do
+        nodes="$$nodes $$(getent hosts $$name | cut -d' ' -f1):6379"; done;
+        redis-cli --cluster create $$nodes --cluster-replicas 1 --cluster-yes &&
+        until redis-cli -h redis-node-1 cluster info | grep -q cluster_state:ok; do sleep 1; done
+
+  api:
+    environment:
+      RATELAB_REDIS_MODE: cluster
+      RATELAB_REDIS_URL: redis://redis-node-1:6379
+    depends_on:
+      redis-cluster-init:
+        condition: service_completed_successfully
