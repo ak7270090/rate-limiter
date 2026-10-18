@@ -1,0 +1,135 @@
+# Three listeners in front of the same API:
+#   10000  global rate limit via envoyproxy/ratelimit (counters in Redis), fail open
+#   10001  the same, fail closed: 503 while the rate limit service is unreachable
+#   10002  local token bucket on /search, counted inside each Envoy only
+admin:
+  address: {socket_address: {address: 0.0.0.0, port_value: 9901}}
+
+static_resources:
+  listeners:
+    - name: global_fail_open
+      address: {socket_address: {address: 0.0.0.0, port_value: 10000}}
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: global_fail_open
+                route_config: &global_routes
+                  name: global_routes
+                  virtual_hosts:
+                    - name: api
+                      domains: ["*"]
+                      routes:
+                        - match: {path: /items}
+                          route:
+                            cluster: api
+                            rate_limits:
+                              - actions:
+                                  - generic_key: {descriptor_key: route, descriptor_value: items}
+                                  - request_headers: {header_name: x-api-key, descriptor_key: api_key}
+                        - match: {path: /search}
+                          route:
+                            cluster: api
+                            rate_limits:
+                              - actions:
+                                  - generic_key: {descriptor_key: route, descriptor_value: search}
+                        - match: {prefix: /}
+                          route: {cluster: api}
+                http_filters:
+                  - name: envoy.filters.http.ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+                      domain: ratelab
+                      failure_mode_deny: false
+                      timeout: 0.05s
+                      enable_x_ratelimit_headers: DRAFT_VERSION_03
+                      rate_limit_service: &rate_limit_service
+                        grpc_service: {envoy_grpc: {cluster_name: ratelimit}}
+                        transport_api_version: V3
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+    - name: global_fail_closed
+      address: {socket_address: {address: 0.0.0.0, port_value: 10001}}
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: global_fail_closed
+                route_config: *global_routes
+                http_filters:
+                  - name: envoy.filters.http.ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+                      domain: ratelab
+                      failure_mode_deny: true
+                      status_on_error: {code: ServiceUnavailable}
+                      timeout: 0.05s
+                      enable_x_ratelimit_headers: DRAFT_VERSION_03
+                      rate_limit_service: *rate_limit_service
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+    - name: local_token_bucket
+      address: {socket_address: {address: 0.0.0.0, port_value: 10002}}
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: local_token_bucket
+                route_config:
+                  name: local_routes
+                  virtual_hosts:
+                    - name: api
+                      domains: ["*"]
+                      routes:
+                        - match: {path: /search}
+                          route: {cluster: api}
+                          typed_per_filter_config:
+                            envoy.filters.http.local_ratelimit:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+                              stat_prefix: search_local
+                              token_bucket: {max_tokens: 300, tokens_per_fill: 300, fill_interval: 10s}
+                              filter_enabled:
+                                runtime_key: search_local_enabled
+                                default_value: {numerator: 100, denominator: HUNDRED}
+                              filter_enforced:
+                                runtime_key: search_local_enforced
+                                default_value: {numerator: 100, denominator: HUNDRED}
+                        - match: {prefix: /}
+                          route: {cluster: api}
+                http_filters:
+                  - name: envoy.filters.http.local_ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+                      stat_prefix: local_rate_limit
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+    - name: api
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: api
+        endpoints:
+          - lb_endpoints:
+              - endpoint: {address: {socket_address: {address: api, port_value: 8000}}}
+
+    - name: ratelimit
+      type: STRICT_DNS
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config: {http2_protocol_options: {}}
+      load_assignment:
+        cluster_name: ratelimit
+        endpoints:
+          - lb_endpoints:
+              - endpoint: {address: {socket_address: {address: ratelimit, port_value: 8081}}}

@@ -1,0 +1,16 @@
+# envoyproxy/ratelimit descriptors. Units are second, minute, hour or day, so the edge limits are
+# per minute: /items 100 per API key, /search 300 for everyone. Counters live in Redis.
+domain: ratelab
+descriptors:
+  - key: route
+    value: items
+    descriptors:
+      - key: api_key
+        rate_limit:
+          unit: minute
+          requests_per_unit: 100
+  - key: route
+    value: search
+    rate_limit:
+      unit: minute
+      requests_per_unit: 300

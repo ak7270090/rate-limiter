@@ -1,0 +1,41 @@
+# Each route lists tiers; a request passes only if every tier allows it, and only then is any
+# tier charged. Tiers with the same name and scope share one counter across routes.
+# scope: global (everyone), route (all callers of this route), caller (this caller on every
+#        route), route_caller (this caller on this route)
+# mode: enforce, or shadow (decide and log, never reject)
+routes:
+  - name: items
+    method: GET
+    path: /items
+    on_store_failure: allow
+    tiers:
+      - {name: items, scope: route_caller, algorithm: sliding_window_counter, limit: 100, window_seconds: 10}
+      - {name: user, scope: caller, algorithm: sliding_window_counter, limit: 200, window_seconds: 10}
+      - {name: global, scope: global, algorithm: gcra, limit: 2000, window_seconds: 1}
+
+  - name: orders
+    method: POST
+    path: /orders
+    on_store_failure: reject
+    tiers:
+      - {name: orders, scope: route_caller, algorithm: gcra, limit: 10, window_seconds: 60, burst: 5}
+      - {name: orders-all, scope: route, algorithm: gcra, limit: 100, window_seconds: 60}
+      - {name: user, scope: caller, algorithm: sliding_window_counter, limit: 200, window_seconds: 10}
+      - {name: global, scope: global, algorithm: gcra, limit: 2000, window_seconds: 1}
+
+  - name: search
+    method: GET
+    path: /search
+    on_store_failure: allow
+    tiers:
+      - {name: search, scope: route, algorithm: sliding_window_counter, limit: 300, window_seconds: 10}
+      - {name: global, scope: global, algorithm: gcra, limit: 2000, window_seconds: 1}
+
+  - name: reports
+    method: POST
+    path: /reports
+    on_store_failure: reject
+    tiers:
+      - {name: reports-day, scope: route_caller, algorithm: fixed_window, limit: 50, window_seconds: 86400}
+      - {name: user, scope: caller, algorithm: sliding_window_counter, limit: 200, window_seconds: 10}
+      - {name: global, scope: global, algorithm: gcra, limit: 2000, window_seconds: 1}

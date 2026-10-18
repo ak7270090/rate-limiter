@@ -39,7 +39,7 @@ Each of these is a design decision, and each one shows up in system design inter
 | 02 · single-node middleware | ✅ |
 | 03 · Redis + Lua | ✅ |
 | 04 · Redis Cluster scaling | ✅ |
-| 05 · edge rate limiting | planned |
+| 05 · edge rate limiting | ✅ |
 | 06 · interview write-up | planned |
 
 ---
@@ -125,6 +125,24 @@ lookup of the stopped node's name took 8 s on Docker's DNS: the lookups filled t
 threads, so the limit went unenforced for 24 s on the cluster, and the Sentinel itself froze and
 never failed over.
 
+### 6. Limiting at the edge
+
+nginx and Envoy in front of the same three replicas, with the app in shadow mode so only the edge
+limits. ([phase 05](05-edge-rate-limiting/README.md))
+
+| Enforced by | 200 at once on one key (limit 100) | 600 on a 300 global limit |
+|---|---|---|
+| app, tiered Lua script in Redis | 100 | 318 |
+| Envoy x2 + `envoyproxy/ratelimit` | 100 | 300 |
+| Envoy x2, local token bucket | – | **600** |
+| nginx `limit_req` x2 | **200** | **600** |
+
+A limit counted per proxy instance multiplies by the number of instances, just like phase 2's
+in-memory replicas. Envoy's rate limit service is exact across Envoys but counts in fixed
+windows (200 through around a minute boundary). The app is the only place with tiers (per key,
+per endpoint, per user, global, daily quota, all charged only if all allow) and a shadow mode
+that recorded 823 would-be rejections without enforcing one.
+
 ---
 
 ## The test harness
@@ -193,6 +211,7 @@ Swap the folder and the settings file for any other setup:
 | 02 · one or three replicas | `docker compose up -d --build --wait` (`$env:API_REPLICAS="3"` for three) | `harness/single-replica.env`, `three-replicas.env`, `fixed-window.env` |
 | 03 · Redis + Lua | `docker compose up -d --build --wait` | `harness/redis-lua.env`, `naive.env`, `incr.env` |
 | 04 · Redis Cluster / Sentinel | `docker compose -f compose.yaml -f compose.cluster.yaml up -d --build --wait` (or `compose.sentinel.yaml`) | `harness/cluster.env`, `sentinel.env` |
+| 05 · edge | `docker compose up -d --build --wait` (ports 8080–8084, one per path) | `harness/app.env`, `envoy-global.env`, `envoy-local.env`, `nginx-edge.env` |
 
 Each phase README lists the exact settings for every variant.
 
@@ -219,6 +238,7 @@ rate-limiting-patterns/
 ├── 02-single-node-middleware/ FastAPI middleware, policies.yaml, nginx, 1 or 3 replicas
 ├── 03-redis-centralized/      Lua scripts, failure policy + circuit breaker, Prometheus, Grafana
 ├── 04-redis-cluster-scaling/  Redis Cluster and Sentinel, hot key split / lease, failover timelines
+├── 05-edge-rate-limiting/     tiered limits + shadow mode in the app; nginx, Envoy, envoyproxy/ratelimit
 ├── docs/images/               diagrams (.excalidraw source + .png)
 └── ruff.toml, LICENSE
 ```
