@@ -4,8 +4,8 @@ import logging
 
 from ratelab.clock import Clock, SystemClock
 from ratelab.constants import ON_STORE_FAILURE_ALLOW, ON_STORE_FAILURE_REJECT
+from ratelab.limiter import RateLimitDecision, RateLimiter
 from ratelab.metrics import STORE_FAILURES
-from ratelab.rate_limiter import RateLimitDecision, RateLimiter
 
 logger = logging.getLogger(__name__)
 

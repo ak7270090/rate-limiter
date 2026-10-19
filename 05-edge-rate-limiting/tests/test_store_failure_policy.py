@@ -2,8 +2,8 @@ import pytest
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from ratelab.clock import FakeClock
-from ratelab.rate_limiter import RateLimitDecision
-from ratelab.redis_failure_policy import (
+from ratelab.limiter import RateLimitDecision
+from ratelab.store.failure_policy import (
     CircuitBreaker,
     LimiterUnavailableError,
     StoreFailurePolicyLimiter,

@@ -34,7 +34,7 @@ LIMITER_UNAVAILABLE_DETAIL = "rate limiter unavailable"
 API_KEY_HASH_LENGTH = 12
 
 REDIS_KEY_PREFIX = "rl"
-LUA_SCRIPT_PACKAGE = "ratelab"
+LUA_SCRIPT_PACKAGE = "ratelab.store"
 LUA_SCRIPT_DIRECTORY = "lua"
 LUA_SCRIPT_SUFFIX = ".lua"
 

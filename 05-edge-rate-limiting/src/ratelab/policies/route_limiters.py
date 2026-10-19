@@ -3,10 +3,10 @@
 from redis.commands.core import AsyncScript
 
 from ratelab.constants import TIERED_LIMIT_SCRIPT
-from ratelab.policy_registry import RoutePolicy
-from ratelab.rate_limiter import RateLimiter
-from ratelab.redis_failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
-from ratelab.tiered_limiter import TieredLimiter
+from ratelab.limiter import RateLimiter
+from ratelab.policies.registry import RoutePolicy
+from ratelab.store.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
+from ratelab.store.tiered_limiter import TieredLimiter
 
 
 class RouteLimiterFactory:

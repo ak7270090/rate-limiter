@@ -9,7 +9,7 @@ import yaml
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 
 from ratelab.constants import MODE_ENFORCE, MODE_SHADOW, ON_STORE_FAILURE_ALLOW
-from ratelab.rate_limiter import RateLimiter, RateLimitRule
+from ratelab.limiter import RateLimiter, RateLimitRule
 
 
 class TierPolicy(BaseModel):

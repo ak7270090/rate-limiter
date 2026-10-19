@@ -7,8 +7,8 @@ Every tier is listed, in policy order, e.g.
 import math
 
 from ratelab.constants import RATE_LIMIT_HEADER, RATE_LIMIT_POLICY_HEADER, RETRY_AFTER_HEADER
-from ratelab.policy_registry import RoutePolicy
-from ratelab.rate_limiter import RateLimitDecision
+from ratelab.limiter import RateLimitDecision
+from ratelab.policies.registry import RoutePolicy
 
 
 def build_rate_limit_headers(policy: RoutePolicy, decision: RateLimitDecision) -> dict[str, str]:
