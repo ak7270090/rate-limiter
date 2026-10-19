@@ -3,13 +3,13 @@ import random
 
 import pytest
 
+from ratelab.algorithms.token_bucket import TokenBucketLimiter
 from ratelab.clock import FakeClock
-from ratelab.hot_key_limiters import SplitKeyLimiter, TokenLeaseLimiter, split_rule
-from ratelab.policy_registry import RoutePolicy
-from ratelab.rate_limiter import RateLimitDecision, RateLimitRule
-from ratelab.redis_failure_policy import CircuitBreaker
-from ratelab.route_limiters import RouteLimiterFactory
-from ratelab.token_bucket import TokenBucketLimiter
+from ratelab.limiter import RateLimitDecision, RateLimitRule
+from ratelab.policies.registry import RoutePolicy
+from ratelab.policies.route_limiters import RouteLimiterFactory
+from ratelab.store.failure_policy import CircuitBreaker
+from ratelab.store.hot_key_limiters import SplitKeyLimiter, TokenLeaseLimiter, split_rule
 
 pytestmark = pytest.mark.anyio
 

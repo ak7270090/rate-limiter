@@ -1,10 +1,10 @@
 import pytest
 
-from ratelab.algorithm_registry import create_in_memory_limiter
+from ratelab.algorithms.registry import create_in_memory_limiter
+from ratelab.algorithms.state_store import KeyStateStore
+from ratelab.algorithms.token_bucket import TokenBucketLimiter
 from ratelab.clock import FakeClock, SystemClock
-from ratelab.key_state_store import KeyStateStore
-from ratelab.rate_limiter import RateLimitRule, build_decision
-from ratelab.token_bucket import TokenBucketLimiter
+from ratelab.limiter import RateLimitRule, build_decision
 
 RULE = RateLimitRule(limit=10, window_seconds=1.0)
 

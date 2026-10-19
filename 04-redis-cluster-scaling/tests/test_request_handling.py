@@ -4,13 +4,13 @@ import pytest
 from pydantic import ValidationError
 from starlette.requests import Request
 
+from ratelab.algorithms.token_bucket import TokenBucketLimiter
+from ratelab.api.caller_key import CallerKeyExtractor
+from ratelab.api.headers import build_rate_limit_headers
+from ratelab.api.middleware import hash_caller_key
 from ratelab.config import ApiSettings
-from ratelab.key_extractor import CallerKeyExtractor
-from ratelab.policy_registry import RoutePolicy, build_policy_registry, load_route_policies
-from ratelab.rate_limit_headers import build_rate_limit_headers
-from ratelab.rate_limit_middleware import hash_caller_key
-from ratelab.rate_limiter import RateLimitDecision
-from ratelab.token_bucket import TokenBucketLimiter
+from ratelab.limiter import RateLimitDecision
+from ratelab.policies.registry import RoutePolicy, build_policy_registry, load_route_policies
 
 EXTRACTOR = CallerKeyExtractor(["10.0.0.0/8"])
 ITEMS_POLICY = RoutePolicy(

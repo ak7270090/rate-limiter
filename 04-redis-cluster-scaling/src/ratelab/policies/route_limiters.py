@@ -3,7 +3,7 @@ failure policy around both."""
 
 from redis.commands.core import AsyncScript
 
-from ratelab.algorithm_registry import IN_MEMORY_LIMITERS, create_in_memory_limiter
+from ratelab.algorithms.registry import IN_MEMORY_LIMITERS, create_in_memory_limiter
 from ratelab.clock import Clock
 from ratelab.constants import (
     ALGORITHM_SLIDING_WINDOW_COUNTER,
@@ -11,12 +11,12 @@ from ratelab.constants import (
     HOT_KEY_STRATEGY_SPLIT,
     ON_STORE_FAILURE_LOCAL,
 )
-from ratelab.hot_key_limiters import SplitKeyLimiter, TokenLeaseLimiter, split_rule
-from ratelab.policy_registry import RoutePolicy
-from ratelab.rate_limiter import RateLimiter, RateLimitRule
-from ratelab.redis_client import RedisClient
-from ratelab.redis_failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
-from ratelab.redis_limiters import create_redis_limiter
+from ratelab.limiter import RateLimiter, RateLimitRule
+from ratelab.policies.registry import RoutePolicy
+from ratelab.store.client import RedisClient
+from ratelab.store.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
+from ratelab.store.hot_key_limiters import SplitKeyLimiter, TokenLeaseLimiter, split_rule
+from ratelab.store.limiters import create_redis_limiter
 
 
 class RouteLimiterFactory:

@@ -11,6 +11,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp
 
+from ratelab.api.caller_key import CallerKeyExtractor
+from ratelab.api.headers import build_rate_limit_headers
 from ratelab.constants import (
     API_KEY_HASH_LENGTH,
     DECISION_ALLOWED,
@@ -21,11 +23,9 @@ from ratelab.constants import (
     RATE_LIMITED_DETAIL,
     RETRY_AFTER_HEADER,
 )
-from ratelab.key_extractor import CallerKeyExtractor
 from ratelab.metrics import DECISIONS, LIMITER_SECONDS
-from ratelab.policy_registry import PolicyRegistry
-from ratelab.rate_limit_headers import build_rate_limit_headers
-from ratelab.redis_failure_policy import LimiterUnavailableError
+from ratelab.policies.registry import PolicyRegistry
+from ratelab.store.failure_policy import LimiterUnavailableError
 
 logger = logging.getLogger(__name__)
 

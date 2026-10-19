@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 
 from ratelab.clock import Clock, SystemClock
 from ratelab.constants import SPLIT_KEY_SEPARATOR
-from ratelab.rate_limiter import RateLimitDecision, RateLimiter, RateLimitRule
+from ratelab.limiter import RateLimitDecision, RateLimiter, RateLimitRule
 
 
 class SplitKeyLimiter:

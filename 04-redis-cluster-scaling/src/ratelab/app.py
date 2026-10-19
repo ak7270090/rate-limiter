@@ -9,18 +9,18 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
+from ratelab.api.caller_key import CallerKeyExtractor
+from ratelab.api.middleware import RateLimitMiddleware
+from ratelab.api.routes import router
 from ratelab.clock import Clock
 from ratelab.config import ApiSettings, get_api_settings
 from ratelab.constants import REPLICA_ID_HEADER
-from ratelab.key_extractor import CallerKeyExtractor
-from ratelab.lua_script_loader import register_lua_scripts
 from ratelab.metrics import metrics_router
-from ratelab.policy_registry import build_policy_registry, load_route_policies
-from ratelab.rate_limit_middleware import RateLimitMiddleware
-from ratelab.redis_client import RedisClient, create_redis_client
-from ratelab.redis_failure_policy import CircuitBreaker
-from ratelab.route_limiters import RouteLimiterFactory
-from ratelab.routes import router
+from ratelab.policies.registry import build_policy_registry, load_route_policies
+from ratelab.policies.route_limiters import RouteLimiterFactory
+from ratelab.store.client import RedisClient, create_redis_client
+from ratelab.store.failure_policy import CircuitBreaker
+from ratelab.store.script_loader import register_lua_scripts
 
 
 class ReplicaIdMiddleware(BaseHTTPMiddleware):

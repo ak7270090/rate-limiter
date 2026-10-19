@@ -1,4 +1,4 @@
-"""Load the Lua scripts shipped in ``ratelab/lua`` and register them with Redis."""
+"""Load the Lua scripts shipped in ``ratelab/store/lua`` and register them with Redis."""
 
 from importlib import resources
 

@@ -3,7 +3,7 @@ from redis.asyncio import Redis
 from redis.asyncio.cluster import RedisCluster
 
 from ratelab.config import ApiSettings
-from ratelab.redis_client import create_redis_client
+from ratelab.store.client import create_redis_client
 
 
 @pytest.mark.parametrize(

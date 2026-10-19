@@ -1,14 +1,14 @@
 import pytest
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from ratelab.algorithms.token_bucket import TokenBucketLimiter
 from ratelab.clock import FakeClock
-from ratelab.rate_limiter import RateLimitDecision, RateLimitRule
-from ratelab.redis_failure_policy import (
+from ratelab.limiter import RateLimitDecision, RateLimitRule
+from ratelab.store.failure_policy import (
     CircuitBreaker,
     LimiterUnavailableError,
     StoreFailurePolicyLimiter,
 )
-from ratelab.token_bucket import TokenBucketLimiter
 
 pytestmark = pytest.mark.anyio
 
