@@ -15,7 +15,7 @@ from ratelab.constants import (
     SCOPE_PER_KEY,
 )
 from ratelab.limiter import RateLimiter, RateLimitRule
-from ratelab.store.limiters import REDIS_ALGORITHMS
+from ratelab.storage.redis_limiters import REDIS_ALGORITHMS
 
 
 class RoutePolicy(BaseModel):

@@ -10,7 +10,7 @@ from ratelab.api.headers import build_rate_limit_headers
 from ratelab.api.middleware import hash_caller_key
 from ratelab.config import ApiSettings
 from ratelab.limiter import RateLimitDecision
-from ratelab.policies.registry import RoutePolicy, build_policy_registry, load_route_policies
+from ratelab.policies.route_policies import RoutePolicy, build_policy_registry, load_route_policies
 
 EXTRACTOR = CallerKeyExtractor(["10.0.0.0/8"])
 ITEMS_POLICY = RoutePolicy(

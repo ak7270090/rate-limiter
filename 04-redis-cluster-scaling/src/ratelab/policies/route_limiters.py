@@ -12,11 +12,11 @@ from ratelab.constants import (
     ON_STORE_FAILURE_LOCAL,
 )
 from ratelab.limiter import RateLimiter, RateLimitRule
-from ratelab.policies.registry import RoutePolicy
-from ratelab.store.client import RedisClient
-from ratelab.store.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
-from ratelab.store.hot_key_limiters import SplitKeyLimiter, TokenLeaseLimiter, split_rule
-from ratelab.store.limiters import create_redis_limiter
+from ratelab.policies.route_policies import RoutePolicy
+from ratelab.storage.client import RedisClient
+from ratelab.storage.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
+from ratelab.storage.hot_key_limiters import SplitKeyLimiter, TokenLeaseLimiter, split_rule
+from ratelab.storage.redis_limiters import create_redis_limiter
 
 
 class RouteLimiterFactory:
