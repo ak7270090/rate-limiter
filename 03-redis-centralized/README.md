@@ -8,7 +8,7 @@ between. Each route decides what happens when Redis is slow or down.
 
 ## How it works
 
-- **One script per algorithm** in [src/ratelab/lua/](src/ratelab/lua/). Every script reads the
+- **One script per algorithm** in [src/ratelab/store/lua/](src/ratelab/store/lua/). Every script reads the
   time with Redis `TIME`, so replicas with different clocks still agree, and sets a TTL so idle
   keys disappear. Scripts are registered once and called with `EVALSHA`; after a `SCRIPT FLUSH`
   redis-py loads them again on `NOSCRIPT`.

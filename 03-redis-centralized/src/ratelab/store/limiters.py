@@ -6,14 +6,14 @@ import math
 from redis.asyncio import Redis
 from redis.commands.core import AsyncScript
 
-from ratelab.algorithm_registry import IN_MEMORY_LIMITERS
+from ratelab.algorithms.registry import IN_MEMORY_LIMITERS
 from ratelab.clock import Clock, SystemClock
 from ratelab.constants import (
     ALGORITHM_FIXED_WINDOW_INCR,
     ALGORITHM_FIXED_WINDOW_NAIVE,
     REDIS_KEY_PREFIX,
 )
-from ratelab.rate_limiter import (
+from ratelab.limiter import (
     RateLimitDecision,
     RateLimiter,
     RateLimitRule,

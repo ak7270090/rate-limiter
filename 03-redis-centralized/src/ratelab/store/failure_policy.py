@@ -10,8 +10,8 @@ from ratelab.constants import (
     ON_STORE_FAILURE_LOCAL,
     ON_STORE_FAILURE_REJECT,
 )
+from ratelab.limiter import RateLimitDecision, RateLimiter, RateLimitRule
 from ratelab.metrics import STORE_FAILURES
-from ratelab.rate_limiter import RateLimitDecision, RateLimiter, RateLimitRule
 
 logger = logging.getLogger(__name__)
 

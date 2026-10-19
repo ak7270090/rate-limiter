@@ -1,7 +1,8 @@
 """GCRA (generic cell rate algorithm): token bucket behaviour from one stored timestamp."""
 
+from ratelab.algorithms.in_memory import InMemoryLimiter
 from ratelab.constants import FLOAT_TOLERANCE
-from ratelab.rate_limiter import InMemoryLimiter, RateLimitDecision, build_decision
+from ratelab.limiter import RateLimitDecision, build_decision
 
 
 class GcraLimiter(InMemoryLimiter[float]):
