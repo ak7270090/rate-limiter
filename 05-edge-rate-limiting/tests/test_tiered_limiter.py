@@ -2,9 +2,9 @@ import pytest
 from redis.asyncio import Redis
 
 from ratelab.constants import TIERED_LIMIT_SCRIPT
-from ratelab.policies.registry import RoutePolicy, TierPolicy
-from ratelab.store.script_loader import register_lua_scripts
-from ratelab.store.tiered_limiter import TieredLimiter, build_tier_key
+from ratelab.policies.route_policies import RoutePolicy, TierPolicy
+from ratelab.storage.script_loader import register_lua_scripts
+from ratelab.storage.tiered_limiter import TieredLimiter, build_tier_key
 
 pytestmark = pytest.mark.anyio
 

@@ -9,7 +9,7 @@ from ratelab.api.headers import build_rate_limit_headers
 from ratelab.api.middleware import hash_caller_key
 from ratelab.config import ApiSettings
 from ratelab.limiter import RateLimitDecision, TierState
-from ratelab.policies.registry import (
+from ratelab.policies.route_policies import (
     RoutePolicy,
     TierPolicy,
     build_policy_registry,

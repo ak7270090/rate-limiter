@@ -4,9 +4,9 @@ from redis.commands.core import AsyncScript
 
 from ratelab.constants import TIERED_LIMIT_SCRIPT
 from ratelab.limiter import RateLimiter
-from ratelab.policies.registry import RoutePolicy
-from ratelab.store.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
-from ratelab.store.tiered_limiter import TieredLimiter
+from ratelab.policies.route_policies import RoutePolicy
+from ratelab.storage.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
+from ratelab.storage.tiered_limiter import TieredLimiter
 
 
 class RouteLimiterFactory:

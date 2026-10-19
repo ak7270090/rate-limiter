@@ -3,7 +3,7 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 
 from ratelab.clock import FakeClock
 from ratelab.limiter import RateLimitDecision
-from ratelab.store.failure_policy import (
+from ratelab.storage.failure_policy import (
     CircuitBreaker,
     LimiterUnavailableError,
     StoreFailurePolicyLimiter,

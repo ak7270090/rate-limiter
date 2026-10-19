@@ -9,7 +9,7 @@ from ratelab.constants import (
     TIER_SCOPE_ROUTE,
 )
 from ratelab.limiter import RateLimitDecision, TierState, ensure_cost_fits
-from ratelab.policies.registry import RoutePolicy, TierPolicy
+from ratelab.policies.route_policies import RoutePolicy, TierPolicy
 
 REPLY_HEADER_LENGTH = 3
 VALUES_PER_TIER = 3

@@ -23,8 +23,8 @@ from ratelab.constants import (
     RETRY_AFTER_HEADER,
 )
 from ratelab.metrics import DECISIONS, LIMITER_SECONDS
-from ratelab.policies.registry import PolicyRegistry
-from ratelab.store.failure_policy import LimiterUnavailableError
+from ratelab.policies.route_policies import PolicyRegistry
+from ratelab.storage.failure_policy import LimiterUnavailableError
 
 logger = logging.getLogger(__name__)
 
