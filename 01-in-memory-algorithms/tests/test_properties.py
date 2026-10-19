@@ -6,7 +6,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from ratelab.algorithm_registry import IN_MEMORY_LIMITERS, create_in_memory_limiter
+from ratelab.algorithms.registry import IN_MEMORY_LIMITERS, create_in_memory_limiter
 from ratelab.clock import FakeClock
 from ratelab.constants import (
     ALGORITHM_FIXED_WINDOW,
@@ -17,7 +17,7 @@ from ratelab.constants import (
     ALGORITHM_SLIDING_WINDOW_LOG,
     ALGORITHM_TOKEN_BUCKET,
 )
-from ratelab.rate_limiter import RateLimitRule
+from ratelab.limiter import RateLimitRule
 
 RULE = RateLimitRule(limit=5, window_seconds=1.0, burst=8)
 START_SECONDS = 1_000.0

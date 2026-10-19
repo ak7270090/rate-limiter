@@ -237,6 +237,22 @@ rate-limiting-patterns/
 └── ruff.toml, LICENSE
 ```
 
+Every phase uses the same `src/ratelab/` layout, one package per domain (a phase only has the
+packages it needs: phase 01 has just `algorithms/`, phase 05 has no `algorithms/`):
+
+```text
+src/ratelab/
+├── app.py, __main__.py   build and run the FastAPI app
+├── config.py             RATELAB_* settings
+├── constants.py, metrics.py
+├── limiter.py            the contract: RateLimitRule, RateLimitDecision, RateLimiter.acquire()
+├── clock.py              real and fake clocks
+├── algorithms/           the six algorithms in memory, their base class, per-key state store
+├── store/                Redis client, Lua scripts and limiters, hot keys, tiers, failure policy
+├── policies/             policies.yaml models and the limiter built for each route
+└── api/                  routes, rate limit middleware, caller key, RateLimit headers
+```
+
 ## License
 
 MIT, see [LICENSE](./LICENSE).

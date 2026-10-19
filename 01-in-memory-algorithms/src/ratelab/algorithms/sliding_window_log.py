@@ -2,7 +2,8 @@
 
 from collections import deque
 
-from ratelab.rate_limiter import InMemoryLimiter, RateLimitDecision, build_decision
+from ratelab.algorithms.in_memory import InMemoryLimiter
+from ratelab.limiter import RateLimitDecision, build_decision
 
 
 class SlidingWindowLogLimiter(InMemoryLimiter[deque[float]]):

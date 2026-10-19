@@ -9,9 +9,9 @@ import tracemalloc
 from dataclasses import dataclass
 from pathlib import Path
 
-from ratelab.algorithm_registry import IN_MEMORY_LIMITERS, create_in_memory_limiter
+from ratelab.algorithms.registry import IN_MEMORY_LIMITERS, create_in_memory_limiter
 from ratelab.clock import FakeClock
-from ratelab.rate_limiter import RateLimitRule
+from ratelab.limiter import RateLimitRule
 
 COMPARISON_FILE_NAME = "algorithm-comparison.md"
 BENCHMARK_RULE = RateLimitRule(limit=100, window_seconds=10.0)

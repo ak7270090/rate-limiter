@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass
 
+from ratelab.algorithms.in_memory import InMemoryLimiter
 from ratelab.constants import FLOAT_TOLERANCE
-from ratelab.rate_limiter import InMemoryLimiter, RateLimitDecision, build_decision
+from ratelab.limiter import RateLimitDecision, build_decision
 
 
 @dataclass(frozen=True, slots=True)

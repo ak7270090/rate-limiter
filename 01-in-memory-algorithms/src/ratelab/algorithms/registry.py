@@ -1,5 +1,12 @@
 """Look up a limiter class by its algorithm name."""
 
+from ratelab.algorithms.fixed_window import FixedWindowLimiter
+from ratelab.algorithms.gcra import GcraLimiter
+from ratelab.algorithms.in_memory import InMemoryLimiter
+from ratelab.algorithms.leaky_bucket import LeakyBucketLimiter, LeakyBucketQueueLimiter
+from ratelab.algorithms.sliding_window_counter import SlidingWindowCounterLimiter
+from ratelab.algorithms.sliding_window_log import SlidingWindowLogLimiter
+from ratelab.algorithms.token_bucket import TokenBucketLimiter
 from ratelab.clock import Clock
 from ratelab.constants import (
     ALGORITHM_FIXED_WINDOW,
@@ -10,13 +17,7 @@ from ratelab.constants import (
     ALGORITHM_SLIDING_WINDOW_LOG,
     ALGORITHM_TOKEN_BUCKET,
 )
-from ratelab.fixed_window import FixedWindowLimiter
-from ratelab.gcra import GcraLimiter
-from ratelab.leaky_bucket import LeakyBucketLimiter, LeakyBucketQueueLimiter
-from ratelab.rate_limiter import InMemoryLimiter, RateLimitRule
-from ratelab.sliding_window_counter import SlidingWindowCounterLimiter
-from ratelab.sliding_window_log import SlidingWindowLogLimiter
-from ratelab.token_bucket import TokenBucketLimiter
+from ratelab.limiter import RateLimitRule
 
 IN_MEMORY_LIMITERS: dict[str, type[InMemoryLimiter]] = {
     ALGORITHM_FIXED_WINDOW: FixedWindowLimiter,
