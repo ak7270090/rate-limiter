@@ -27,7 +27,7 @@ ALGORITHM_FIXED_WINDOW_NAIVE = "fixed_window_naive"
 ALGORITHM_FIXED_WINDOW_INCR = "fixed_window_incr"
 
 REDIS_KEY_PREFIX = "rl"
-LUA_SCRIPT_PACKAGE = "ratelab.store"
+LUA_SCRIPT_PACKAGE = "ratelab.storage"
 LUA_SCRIPT_DIRECTORY = "lua"
 LUA_SCRIPT_SUFFIX = ".lua"
 

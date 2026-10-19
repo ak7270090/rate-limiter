@@ -13,12 +13,12 @@ from ratelab.constants import (
     ALGORITHM_TOKEN_BUCKET,
 )
 from ratelab.limiter import RateLimitRule
-from ratelab.store.limiters import (
+from ratelab.storage.redis_limiters import (
     build_decision_from_reply,
     build_redis_key,
     create_redis_limiter,
 )
-from ratelab.store.script_loader import read_lua_sources, register_lua_scripts
+from ratelab.storage.script_loader import read_lua_sources, register_lua_scripts
 
 pytestmark = pytest.mark.anyio
 

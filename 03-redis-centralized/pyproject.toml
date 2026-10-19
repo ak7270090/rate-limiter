@@ -27,7 +27,7 @@ dev = [
 ]
 
 [tool.setuptools.package-data]
-"ratelab.store" = ["lua/*.lua"]
+"ratelab.storage" = ["lua/*.lua"]
 
 [tool.ruff]
 extend = "../ruff.toml"

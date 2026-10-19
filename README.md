@@ -248,7 +248,7 @@ src/ratelab/
 ├── limiter.py            the contract: RateLimitRule, RateLimitDecision, RateLimiter.acquire()
 ├── clock.py              real and fake clocks
 ├── algorithms/           the six algorithms in memory, their base class, per-key state store
-├── store/                Redis client, Lua scripts and limiters, hot keys, tiers, failure policy
+├── storage/              Redis client, Lua scripts and limiters, hot keys, tiers, failure policy
 ├── policies/             policies.yaml models and the limiter built for each route
 └── api/                  routes, rate limit middleware, caller key, RateLimit headers
 ```

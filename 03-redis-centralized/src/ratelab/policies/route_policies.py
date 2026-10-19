@@ -10,7 +10,7 @@ from pydantic import BaseModel, PositiveFloat, PositiveInt, field_validator
 
 from ratelab.constants import ON_STORE_FAILURE_ALLOW, SCOPE_GLOBAL, SCOPE_PER_KEY
 from ratelab.limiter import RateLimiter, RateLimitRule
-from ratelab.store.limiters import REDIS_ALGORITHMS
+from ratelab.storage.redis_limiters import REDIS_ALGORITHMS
 
 
 class RoutePolicy(BaseModel):

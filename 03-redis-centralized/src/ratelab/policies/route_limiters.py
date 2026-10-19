@@ -7,9 +7,9 @@ from ratelab.algorithms.registry import IN_MEMORY_LIMITERS, create_in_memory_lim
 from ratelab.clock import Clock
 from ratelab.constants import ALGORITHM_SLIDING_WINDOW_COUNTER, ON_STORE_FAILURE_LOCAL
 from ratelab.limiter import RateLimiter, RateLimitRule
-from ratelab.policies.registry import RoutePolicy
-from ratelab.store.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
-from ratelab.store.limiters import create_redis_limiter
+from ratelab.policies.route_policies import RoutePolicy
+from ratelab.storage.failure_policy import CircuitBreaker, StoreFailurePolicyLimiter
+from ratelab.storage.redis_limiters import create_redis_limiter
 
 
 class RouteLimiterFactory:
