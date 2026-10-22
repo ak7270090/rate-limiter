@@ -2,19 +2,30 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-**A partner's script gets stuck in a retry loop on a Monday morning** and starts firing
-thousands of requests a second at your orders API. You have a rate limit, 100 requests per
-10 seconds per API key, so you should be fine. You aren't. You run three API servers, each one
-keeps its own count, and each one thinks the partner has used a third of the limit. So you move
-the count to Redis, and now two servers read "99" at the same moment and both say yes. Then Redis
-restarts during the lunch rush, and nobody ever decided what should happen next.
+**Someone is hitting your API again and again.** Maybe it's a bot, maybe a buggy app stuck in a
+retry loop: 500 requests a second on your orders endpoint, and everyone else's checkout slows
+down. So you add a rate limit, 100 requests per 10 seconds per user, and keep the counts in the
+server's memory. It works.
 
-This project is a rate limiter that holds the limit **exactly, across any number of API
-servers**. Every request costs one call to Redis, where a small Lua script reads the count,
-decides and writes it back in a single step, so no two servers can squeeze through the same last
-slot. It scales out to a Redis Cluster, copes with the one key everybody hits, and decides per
-endpoint what to do when Redis is down. In front of it, nginx or Envoy throws away floods before
-they reach the app at all.
+Then, one by one, things break:
+
+- **You deploy and the server restarts.** Every count is back to zero.
+- **Traffic grows, so you run three servers** behind a load balancer. Each one keeps its own
+  count, so a user who should get 100 now gets 300.
+- **You move the counts into Redis**, one place every server shares. Now two servers read "99"
+  at the same moment, and both say yes.
+- **The Redis node dies.** Every request waits on a server that isn't there. Do you let everyone
+  in, or block everyone?
+- **You move to a Redis Cluster** for safety and speed, and find that your "300 searches per
+  10 seconds for everyone" limit is a single key: one node does all the work while the other
+  two sit idle.
+
+Every step raises the next question: where does the count live, how do servers agree on it, what
+happens when Redis goes down, and how does it scale? This project answers them one at a time and
+measures every answer. The result is a rate limiter that holds the limit **exactly, across any
+number of servers**: one small Lua script in Redis reads, decides and writes in a single step,
+Redis Cluster spreads the keys, the hot key is split or handed out in batches, each endpoint has
+a plan for Redis being down, and nginx or Envoy throws away floods before they reach the app.
 
 For example, Riya's network is slow, so she taps **Place order** six times in one second. The
 first five go through (orders allow a burst of 5), and the sixth gets `429` with
@@ -111,12 +122,17 @@ that refilled between the bursts, which is exactly their rule.
 
 ### 3. Redis stops answering
 
-Redis paused for 20 s in the middle of a load test with 80 users: `/items` (fail open) had 0
-errors, `/orders` and `/reports` (fail closed) answered 1,505 and 497 quick `503`s, `/search`
-kept limiting through its local fallback, and the limiter's p95 stayed around 4 ms.
-([phase 03](03-redis-centralized/README.md))
+Redis is paused from 10 s to 30 s while traffic keeps coming. Each endpoint does what its
+policy says, with no errors and no request stuck waiting:
 
-<p align="center"><img src="03-redis-centralized/docs/grafana-dashboard.png" alt="Grafana dashboard during a load test with Redis paused for 20 seconds around 01:37: decisions per second by route and outcome show orders and reports unavailable during the pause; Redis failures per second by route and action show items allow, search local, orders and reports reject; limiter p95 stays around 4 ms; admitted per second is even across the three replicas" width="100%"></p>
+<p align="center"><img src="docs/images/redis-down-timeline.png" alt="Status strips per second for three endpoints while Redis is paused from 10 to 30 seconds. GET /items, fail open: the limit works before the pause, every request is allowed during it, and the limit works again after. POST /orders, fail closed: every request is refused with 503 during the pause, then limited again. GET /search, local limit: each server keeps limiting on its own during the pause" width="100%"></p>
+
+- **`/items` (fail open):** reads keep working, unlimited, while Redis is away.
+- **`/orders` (fail closed):** refused with a quick `503` and `Retry-After`, never guessed.
+- **`/search` (local limit):** each of the 3 servers limits on its own, at a third of the limit.
+
+In a longer load test (80 users, Redis paused for 20 s) the limiter's p95 stayed around 4 ms, and
+`/items` had 0 errors ([phase 03](03-redis-centralized/README.md), with the Grafana dashboard).
 
 ### 4. One key everybody hits
 
@@ -136,12 +152,17 @@ calls/s, because all three nodes did work instead of one.
 
 One key at 20 requests/s; the primary holding it is stopped at 10 s:
 
-<p align="center"><img src="04-redis-cluster-scaling/docs/failover-timelines.png" alt="Four timelines of requests per second. Cluster with hostnames: 30 requests fail at 13-14 s, then every request is admitted until 38 s. Cluster with IP addresses: requests are admitted from 10 to 18 s, then limiting at 10 per second resumes at 19 s. Sentinel with hostnames: almost every request fails from 15 to 25 s and no failover happens. Sentinel with IP addresses: admitted from 10 to 18 s, limiting resumes at 19 s" width="100%"></p>
+<p align="center"><img src="04-redis-cluster-scaling/docs/failover-timelines.png" alt="Status strips per second for four setups after a Redis primary is stopped at 10 seconds. With nodes found by IP, both Redis Cluster and Sentinel allow everything for 9 seconds, then the limit works again from 19 s. Redis Cluster with hostnames: requests fail at 13 to 14 s, then nothing is limited until 39 s. Sentinel with hostnames: requests fail from 15 to 24 s and no failover happens; limiting returns only after the old primary restarts" width="100%"></p>
 
-With IP addresses, both Redis Cluster and Sentinel recover in about 9 s, failing open with 0
-errors in between. With hostnames, both broke: looking up a stopped node's name took 8 s on
-Docker's DNS, the lookups blocked the client from reaching the healthy nodes too, and the limit
-went unenforced for 24 s. Sentinel froze and never failed over. The fix was advertising IPs.
+- **Clients that reach Redis nodes by IP address** recover in about 9 s: a replica takes over,
+  requests fail open in between with 0 errors, and the limit works again.
+- **Clients that look nodes up by name** depend on DNS. When the dead node's name is slow to
+  resolve, the slow lookups fill the client's resolver threads, so it can't reach the *healthy*
+  nodes either: the limit was off for 24 s. Sentinel resolves names on its single thread, so it
+  froze and never promoted the replica.
+- **The fix:** nodes announce IP addresses (Redis Cluster's default), or DNS must fail fast. The
+  slow lookup here came from Docker's DNS (8 s for a stopped node), but a slow DNS server on VMs,
+  Kubernetes or in the cloud causes the same failure.
 
 ### 6. Limiting at the edge
 

@@ -78,7 +78,7 @@ the key is stopped at 10 s and started again at 30 s
 [failover-sentinel.md](results/failover-sentinel.md),
 [failover-before-ip-endpoints.md](results/failover-before-ip-endpoints.md)):
 
-<p align="center"><img src="docs/failover-timelines.png" alt="Four timelines of requests per second. Cluster with hostnames: 30 requests fail at 13-14 s, then every request is admitted until 38 s. Cluster with IP addresses: requests are admitted from 10 to 18 s, then limiting at 10 per second resumes at 19 s. Sentinel with hostnames: almost every request fails from 15 to 25 s and no failover happens. Sentinel with IP addresses: admitted from 10 to 18 s, limiting resumes at 19 s" width="100%"></p>
+<p align="center"><img src="docs/failover-timelines.png" alt="Status strips per second for four setups after a Redis primary is stopped at 10 seconds. With nodes found by IP, both Redis Cluster and Sentinel allow everything for 9 seconds, then the limit works again from 19 s. Redis Cluster with hostnames: requests fail at 13 to 14 s, then nothing is limited until 39 s. Sentinel with hostnames: requests fail from 15 to 24 s and no failover happens; limiting returns only after the old primary restarts" width="100%"></p>
 
 - **With IP addresses, both recover in about 9 s**: 2 s until the node is declared down, the
   replica's promotion, and the client finding it. Requests fail open in between with 0 errors;
