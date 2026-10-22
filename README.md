@@ -1,54 +1,101 @@
-# Rate Limiting Lab
+# Distributed Rate Limiter (Redis + Lua)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-How do you stop one client from using up an API's capacity, and keep that working when the API
-runs on many servers? This lab builds the same rate limiter several ways, from an in-memory
-counter to Redis with Lua scripts to limits enforced at the edge, and runs the exact same tests
-against each one.
+**A partner's script gets stuck in a retry loop on a Monday morning** and starts firing
+thousands of requests a second at your orders API. You have a rate limit, 100 requests per
+10 seconds per API key, so you should be fine. You aren't. You run three API servers, each one
+keeps its own count, and each one thinks the partner has used a third of the limit. So you move
+the count to Redis, and now two servers read "99" at the same moment and both say yes. Then Redis
+restarts during the lunch rush, and nobody ever decided what should happen next.
+
+This project is a rate limiter that holds the limit **exactly, across any number of API
+servers**. Every request costs one call to Redis, where a small Lua script reads the count,
+decides and writes it back in a single step, so no two servers can squeeze through the same last
+slot. It scales out to a Redis Cluster, copes with the one key everybody hits, and decides per
+endpoint what to do when Redis is down. In front of it, nginx or Envoy throws away floods before
+they reach the app at all.
+
+For example, Riya's network is slow, so she taps **Place order** six times in one second. The
+first five go through (orders allow a burst of 5), and the sixth gets `429` with
+`Retry-After: 5`, whichever of the three servers it lands on. A few minutes later Redis crashes:
+the menu keeps loading, orders get a quick `503` instead of a guess, and after three failed calls
+the API stops waiting on Redis at all until it's back.
+
+<p align="center">
+  <img src="docs/images/architecture.png" alt="How one request is decided: the client calls the edge proxy (nginx or Envoy, which rejects floods), then an API replica; the middleware finds the caller key k42 and the orders policy; if Redis is healthy one EVALSHA of token_bucket.lua on Redis Cluster reads, decides and writes the key rl:{orders:key:k42}:token_bucket; if not, each route decides: items allow, orders 503, search a local limit; panels show the real Redis call returning {1, 5, 4, 6000, 0, 0}, the 429 response with Retry-After 5 and RateLimit headers, and the limits from policies.yaml" width="100%">
+</p>
+
+**Every claim here is measured.** One test harness throws the same traffic at every version: 200
+requests at the same instant, bursts on both sides of a window reset, Redis paused under load, a
+Redis primary killed mid-traffic. The numbers below come from those runs.
 
 ---
 
-## The problem
+## How it works
 
-You add a limit: 100 requests per 10 seconds per API key. It works on your laptop. Then:
+A request passes four checkpoints. Each one exists because the simpler version broke:
 
-- *A client sends 100 requests just before the minute ends and 100 just after.* Both batches pass.
-- *You scale to three replicas.* Every replica keeps its own count, so the real limit is 300.
-- *You move the count to Redis.* Under load two replicas read 99, both allow, and the count ends
-  at 101.
-- *Redis restarts.* Do you let every request through, or reject every request?
+- **Edge shield (nginx / Envoy):** a generous per-instance limit that drops floods before they
+  cost the app anything. It is *not* the real limit: two proxies each count on their own, so
+  they let twice the limit through.
+- **Middleware in every API replica:** works out who is calling (API key, then user, then client
+  IP, trusting `X-Forwarded-For` only from known proxies) and which limit applies to this route,
+  from `policies.yaml`.
+- **One Lua script in Redis:** the algorithm runs *inside* Redis, so read, decide and write happen
+  with nothing in between. It uses Redis's clock, so servers with different clocks still agree,
+  and every key expires on its own once it's idle.
+- **A plan for when Redis fails:** a 50 ms timeout, a circuit breaker that stops calling a dead
+  Redis after 3 failures, and a per-route choice: let reads through, refuse orders with `503`, or
+  fall back to a rough local limit.
 
-Each of these is a design decision, and each one shows up in system design interviews.
+Behind that, Redis Cluster spreads the keys over three primaries. The `{hash tag}` in each key
+keeps one caller's keys on one node. A limit shared by everyone (one key, so one node) is split
+into sub-keys or handed out in batches of 30 tokens. A request can also be checked against
+several limits at once (per key, per endpoint, per user, global, daily quota), and nothing is
+charged unless all of them allow it.
 
-## What this lab does
+---
 
-<p align="center"><img src="docs/images/plan-overview.png" alt="Phases in a row: 01 in-memory, a skipped step noting that a count per replica allows three times the limit, 03 Redis and Lua, 04 cluster, 05 edge, 06 write-up; the rate-harness sends the same HTTP suites and load to phases 03 to 05; panels show the five standard routes with their limits and an example 429 response with Retry-After and RateLimit headers" width="100%"></p>
+## Concepts used
 
-- 🧪 **One test harness for every setup.** Steady traffic, a burst on each side of a window reset,
-  200 clients at the same instant, a global limit shared by all keys, the response headers, a
-  store outage, and the latency the limiter adds.
-- 📐 **Six algorithms behind one interface:** fixed window, sliding window log, sliding window
-  counter, token bucket, leaky bucket and GCRA.
-- 📊 **Every number is measured**, and the raw results are saved in each phase's `results/`.
-
-| Phase | Status |
+| Concept | In plain words |
 |---|---|
-| 00 · test harness | ✅ |
-| 01 · in-memory algorithms | ✅ |
-| 03 · Redis + Lua | ✅ |
-| 04 · Redis Cluster scaling | ✅ |
-| 05 · edge rate limiting | ✅ |
-| 06 · interview write-up | planned |
+| **Six algorithms** | Fixed window, sliding window log, sliding window counter, token bucket, leaky bucket and GCRA, all behind one `acquire(key, cost)` call, so a route switches algorithm with one line of config. |
+| **Atomic check with Lua** | The count is read, compared and updated in one step inside Redis, so 200 simultaneous requests can't all see "99". |
+| **Redis Cluster + hash tags** | Keys spread over several Redis nodes; `rl:{orders:key:k42}:…` keeps one caller's keys together so one script can use them. |
+| **Hot keys** | A global limit is one key on one node. Split it into 10 sub-keys, or let each server lease 30 tokens at a time (97% fewer Redis calls). |
+| **Fail open / fail closed** | When Redis is down, each endpoint decides: allow (reads), refuse with `503` (orders), or count locally. |
+| **Circuit breaker** | After repeated failures, stop calling Redis for 2 s instead of making every request wait for a timeout. |
+| **Failover** | Redis Cluster and Sentinel promote a replica when a primary dies; measured end to end, including a DNS trap that stalled it. |
+| **Edge rate limiting** | nginx `limit_req`, Envoy's local token bucket, and Envoy with `envoyproxy/ratelimit`, compared on the same traffic. |
+| **Tiered limits + shadow mode** | Several limits per request, all charged or none; a new limit can run in shadow mode, logging who it *would* refuse, before it's enforced. |
+| **Standard headers** | `429` with `Retry-After`, plus the IETF `RateLimit` / `RateLimit-Policy` headers on every response so clients can slow down early. |
+| **Observability** | Prometheus metrics per route and outcome, and a Grafana dashboard. |
 
 ---
 
-## Results
+## What I measured
 
-### 1. Six algorithms, one burst test
+### 1. Same traffic, five implementations
 
-Limit: 100 requests per 10 s. A client sends 100 requests 0.5 s before a fixed window resets and
-100 more 0.2 s after it. ([full table](01-in-memory-algorithms/results/algorithm-comparison.md))
+Limit 100 per 10 s on one key, three API replicas. Blue: 200 requests released at the same
+instant. Orange: 100 just before a window resets and 100 just after.
+
+<p align="center"><img src="docs/images/admitted-vs-limit.png" alt="Bar chart of requests admitted against a limit of 100. Redis GET, compare, INCR: 117 at once, 200 around a reset. Redis INCR first: 100 and 200. nginx limit_req with 2 instances: 200 and 200. Envoy x2 with the ratelimit service: 100 and 200. Redis with one Lua script: 100 and 102" width="85%"></p>
+
+- **Read, compare, then write** lets 117 through: several servers read the same count before any
+  of them writes.
+- **Increment first** fixes that, but it's stuck with a fixed window, which doubles the limit
+  around a reset.
+- **Proxies** either count per instance (nginx: 2 instances, 2× the limit) or only in fixed
+  windows (Envoy's service).
+- **One Lua script** holds both, and adds about 1–2 ms at p95.
+
+### 2. Six algorithms, one burst
+
+100 requests 0.5 s before a fixed window resets and 100 more 0.2 s after it
+([full table](01-in-memory-algorithms/results/algorithm-comparison.md)):
 
 | Algorithm | Admitted | Bytes per key |
 |---|---|---|
@@ -59,115 +106,79 @@ Limit: 100 requests per 10 s. A client sends 100 requests 0.5 s before a fixed w
 | GCRA | 107 | 113 |
 
 Only the log is exact, and it stores a timestamp per request. The sliding window counter gets
-within 2% with two counters. The buckets and GCRA admit 100 plus the 7 tokens that refilled
-between the bursts, exactly their rule. The fixed window doubles the limit.
+within 2% with two numbers, so it's the default here. The buckets and GCRA admit the 7 tokens
+that refilled between the bursts, which is exactly their rule.
 
-### 2. Why each server can't keep its own count
+### 3. Redis stops answering
 
-Phase 01's limiters count inside one process. Run three copies of the API behind a load balancer
-and each copy sees only about a third of a client's requests, so each one stays under its own
-limit: a limit of 100 per key really allows about 300, and it changes every time you add or remove
-a copy. A client also sees `remaining` jump around, because each reply comes from a different
-copy's count.
-
-So the count has to live in one place that every copy reads and updates in a single step. That
-is the next phase: a centralized Redis.
-
-### 3. One Redis, and why the check must be atomic
-
-Three API replicas sharing one Redis. 200 requests on one key arrive at once, limit 100.
+Redis paused for 20 s in the middle of a load test with 80 users: `/items` (fail open) had 0
+errors, `/orders` and `/reports` (fail closed) answered 1,505 and 497 quick `503`s, `/search`
+kept limiting through its local fallback, and the limiter's p95 stayed around 4 ms.
 ([phase 03](03-redis-centralized/README.md))
 
-| How the replica talks to Redis | Admitted |
-|---|---|
-| GET the count, compare in Python, INCRBY | **117** |
-| INCRBY first, compare after (fixed window) | 100, but 200 around a window reset |
-| One Lua script: read, decide, write (sliding window counter) | 100, and 102 around a reset |
+<p align="center"><img src="03-redis-centralized/docs/grafana-dashboard.png" alt="Grafana dashboard during a load test with Redis paused for 20 seconds around 01:37: decisions per second by route and outcome show orders and reports unavailable during the pause; Redis failures per second by route and action show items allow, search local, orders and reports reject; limiter p95 stays around 4 ms; admitted per second is even across the three replicas" width="100%"></p>
 
-With Lua the three replicas are as exact as one process was in phase 1. Redis adds about
-1–2 ms at p95.
+### 4. One key everybody hits
 
-### 4. When Redis stops answering
+`/search` has one limit for all callers, so on a 3-node Redis Cluster every call lands on one
+node ([phase 04](04-redis-cluster-scaling/README.md)):
 
-The harness pauses Redis while sending requests. Each route follows its own policy:
+| Strategy | Admitted (limit 300 of 600) | Redis calls | Calls per node |
+|---|---|---|---|
+| one key | 300 | 600 | 600 / 0 / 0 |
+| split into 10 sub-keys | 300 | 600 | 184 / 173 / 243 |
+| lease 30 tokens per call | 300 | **16** | 16 / 0 / 0 |
 
-| Route | Policy | Result |
-|---|---|---|
-| `/items` | fail open | 10 / 10 answered 200, slowest 59 ms |
-| `/orders` | fail closed | 10 / 10 answered 503 with `Retry-After` |
-| `/search` | local fallback | each replica limits at a third of the global limit |
+Straight against Redis, splitting the hot key raised script throughput from 39,297 to 63,109
+calls/s, because all three nodes did work instead of one.
 
-A 50 ms timeout and a circuit breaker keep a dead Redis from slowing every request down.
+### 5. A Redis primary dies mid-traffic
 
-### 5. One hot key, and a primary that dies
-
-`/search` has one limit for all callers, so on Redis Cluster every call lands on one shard.
-([phase 04](04-redis-cluster-scaling/README.md))
-
-| Lua script straight against Redis | Calls/s |
-|---|---|
-| cluster, one hot key | 39,297, one primary busy, two idle |
-| cluster, hot key split into 10 sub-keys | 63,109, all three primaries busy |
-
-Through the API (600 requests, limit 300) both fixes stay exact: splitting spreads the 600 Redis
-calls over three primaries, and leasing 30 tokens per call cuts them to **16**.
-
-Then the primary holding a key is stopped while that key sends 20 requests/s:
+One key at 20 requests/s; the primary holding it is stopped at 10 s:
 
 <p align="center"><img src="04-redis-cluster-scaling/docs/failover-timelines.png" alt="Four timelines of requests per second. Cluster with hostnames: 30 requests fail at 13-14 s, then every request is admitted until 38 s. Cluster with IP addresses: requests are admitted from 10 to 18 s, then limiting at 10 per second resumes at 19 s. Sentinel with hostnames: almost every request fails from 15 to 25 s and no failover happens. Sentinel with IP addresses: admitted from 10 to 18 s, limiting resumes at 19 s" width="100%"></p>
 
-With IP addresses both setups fail open for about 9 s and then limit again. With hostnames, a
-lookup of the stopped node's name took 8 s on Docker's DNS: the lookups filled the API's resolver
-threads, so the limit went unenforced for 24 s on the cluster, and the Sentinel itself froze and
-never failed over.
+With IP addresses, both Redis Cluster and Sentinel recover in about 9 s, failing open with 0
+errors in between. With hostnames, both broke: looking up a stopped node's name took 8 s on
+Docker's DNS, the lookups blocked the client from reaching the healthy nodes too, and the limit
+went unenforced for 24 s. Sentinel froze and never failed over. The fix was advertising IPs.
 
 ### 6. Limiting at the edge
 
-nginx and Envoy in front of the same three replicas, with the app in shadow mode so only the edge
-limits. ([phase 05](05-edge-rate-limiting/README.md))
-
-| Enforced by | 200 at once on one key (limit 100) | 600 on a 300 global limit |
-|---|---|---|
-| app, tiered Lua script in Redis | 100 | 318 |
-| Envoy x2 + `envoyproxy/ratelimit` | 100 | 300 |
-| Envoy x2, local token bucket | – | **600** |
-| nginx `limit_req` x2 | **200** | **600** |
-
-A limit counted per proxy instance multiplies by the number of instances, for the same reason as
-in section 2. Envoy's rate limit service is exact across Envoys but counts in fixed
-windows (200 through around a minute boundary). The app is the only place with tiers (per key,
-per endpoint, per user, global, daily quota, all charged only if all allow) and a shadow mode
-that recorded 823 would-be rejections without enforcing one.
+Two nginx or two Envoy local buckets let **600 through a limit of 300**: a per-instance count
+multiplies with the instances. Envoy with `envoyproxy/ratelimit` is exact across Envoys but only
+counts in fixed second / minute / hour / day windows. So the edge is the flood shield, and the
+app keeps the real limit: the only place that knows the user, the endpoint and the business
+rules. In shadow mode it recorded 823 would-be rejections without refusing one.
+([phase 05](05-edge-rate-limiting/README.md))
 
 ---
 
-## The test harness
+## How it's tested
 
-<p align="center"><img src="docs/images/plan-phase-0-harness.png" alt="Four traffic patterns (steady, burst, boundary straddle, 200-client fan-out) go to the phase URL; responses go to limit_accuracy and header_checks, which also read the expected policy and expected failures from the phase settings file, and write a report of limit versus admitted per suite" width="100%"></p>
-
-The harness never imports server code. It talks HTTP to a URL, and a small settings file per setup
-says which checks should pass and which failures are expected, so an expected failure shows up as
-`XFAIL` instead of red.
-
-How it decides pass or fail: starting from an empty limit, any correct algorithm admits at most
-`limit` at once plus what refills while the batch is being sent (`limit × elapsed / window`).
-Anything above that, plus a 5% tolerance, is over-admission.
+The harness never imports the server code. It talks HTTP to a URL, and a small settings file per
+setup says which checks should pass and which failures are expected, so an expected failure
+shows up as `XFAIL`, not red.
 
 | Suite | Traffic | Passes when |
 |---|---|---|
-| `accuracy` | 150 requests at 50/s on one key | admitted stays within the bound |
-| `boundary_burst` | 100 just before a window reset, 100 just after | the most admitted in any window stays within the bound |
-| `concurrency` | 200 requests on one key released at once | admitted stays within the bound |
+| `accuracy` | 150 requests at 50/s on one key | admitted stays within the limit |
+| `boundary_burst` | 100 just before a window reset, 100 just after | the most admitted in any window stays within the limit |
+| `concurrency` | 200 requests on one key released at once | admitted stays within the limit |
 | `global_limit` | 600 requests from 50 keys | the shared limit holds across replicas |
 | `headers` | 110 sequential requests | `RateLimit` / `RateLimit-Policy` match the policy, `429` has `Retry-After` |
 | `failover` | store killed, then requests | fail-open routes answer 200, fail-closed routes 503, nobody waits |
 | `latency_overhead` | 200 requests on `/ping` and on a limited route | p95 difference within budget |
 
-The harness uses aiohttp and opens its connections before any timed traffic. The first version
-used httpx: with 50 requests in flight it managed about 100 requests/s while Apache Bench got
-1,380/s from the same API, and opening connections through Docker Desktop's port forwarding added
-seconds. The bursts that should land 1.2 s apart landed 6 s apart, which made the boundary test
-meaningless.
+"Within the limit" allows the limit plus what refills while the batch is in flight
+(`limit × elapsed / window`), plus 5%. The harness uses aiohttp with connections opened before
+any timed traffic: the first version used httpx, managed only about 100 requests/s, and the
+bursts that should land 1.2 s apart landed 6 s apart.
+
+Unit tests: 29 (algorithms), 60 (Redis + Lua), 72 (Cluster + hot keys) and 23 (tiers + edge), each
+folder enforcing 80% coverage (98–99% today). Lua is tested against a real Redis, not fakeredis.
+Property tests (Hypothesis) throw random request sequences at every algorithm with a fake clock
+and check the limit is never exceeded.
 
 ---
 
@@ -179,36 +190,35 @@ meaningless.
 - Windows PowerShell commands below; on macOS/Linux use `.venv/bin/python` instead of
   `.\.venv\Scripts\python.exe`
 
-### Install the harness
+### Start the main setup and test it
 
 ```powershell
 cd rate-limiting-patterns\rate-harness
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m pytest          # harness self-tests
-```
 
-### Start one setup and test it
-
-```powershell
 cd ..\03-redis-centralized
 docker compose up -d --build --wait           # Redis + 3 API replicas + nginx on :8080
 
 cd ..\rate-harness
 $env:HARNESS_ENV_FILE = "../03-redis-centralized/harness/redis-lua.env"
 .\.venv\Scripts\python.exe -m pytest tests/suites -rxXs
-.\.venv\Scripts\locust.exe -f load/locustfile.py --headless --host http://localhost:8080 --only-summary
 ```
 
-Swap the folder and the settings file for any other setup:
+Try it by hand:
+
+```powershell
+1..6 | ForEach-Object { curl.exe -s -o NUL -w "%{http_code}`n" -X POST http://localhost:8080/orders -H "X-API-Key: k42" }
+# 200 200 200 200 200 429
+```
+
+Other setups use the same harness with a different folder and settings file:
 
 | Setup | Start | Harness settings |
 |---|---|---|
-| 03 · Redis + Lua | `docker compose up -d --build --wait` | `harness/redis-lua.env`, `naive.env`, `incr.env` |
-| 04 · Redis Cluster / Sentinel | `docker compose -f compose.yaml -f compose.cluster.yaml up -d --build --wait` (or `compose.sentinel.yaml`) | `harness/cluster.env`, `sentinel.env` |
-| 05 · edge | `docker compose up -d --build --wait` (ports 8080–8084, one per path) | `harness/app.env`, `envoy-global.env`, `envoy-local.env`, `nginx-edge.env` |
-
-Each phase README lists the exact settings for every variant.
+| Redis + Lua | `docker compose up -d --build --wait` | `harness/redis-lua.env`, `naive.env`, `incr.env` |
+| Redis Cluster / Sentinel | `docker compose -f compose.yaml -f compose.cluster.yaml up -d --build --wait` (or `compose.sentinel.yaml`) | `harness/cluster.env`, `sentinel.env` |
+| Edge (nginx, Envoy) | `docker compose up -d --build --wait` (ports 8080–8084, one per path) | `harness/app.env`, `envoy-global.env`, `envoy-local.env`, `nginx-edge.env` |
 
 ### Clean up
 
@@ -222,36 +232,35 @@ Then quit Docker Desktop. On Windows, also run `wsl --shutdown` to free the memo
 
 ## Project structure
 
+Each step is its own runnable folder, so you can compare how the design changed:
+
 ```text
 rate-limiting-patterns/
-├── rate-harness/              the client side: pytest suites, Locust profile
-│   ├── src/rateharness/       config, traffic patterns, limit accuracy, header checks, report
-│   ├── tests/suites/          the seven behaviour checks, one pytest marker each
-│   ├── tests/unit/            harness self-tests against an in-process stub API
-│   └── load/                  Locust user + load shape
-├── 01-in-memory-algorithms/   six algorithms, property tests, benchmark
-├── 03-redis-centralized/      Lua scripts, failure policy + circuit breaker, Prometheus, Grafana
-├── 04-redis-cluster-scaling/  Redis Cluster and Sentinel, hot key split / lease, failover timelines
-├── 05-edge-rate-limiting/     tiered limits + shadow mode in the app; nginx, Envoy, envoyproxy/ratelimit
-├── docs/images/               diagrams (.excalidraw source + .png)
+├── 01-in-memory-algorithms/   the six algorithms, property tests, benchmark
+├── 03-redis-centralized/      Redis + Lua, failure policy + circuit breaker, Prometheus, Grafana
+├── 04-redis-cluster-scaling/  Redis Cluster and Sentinel, hot key split / lease, failover
+├── 05-edge-rate-limiting/     tiered limits + shadow mode; nginx, Envoy, envoyproxy/ratelimit
+├── rate-harness/              the client side: pytest suites, Locust load profile
+├── docs/images/               diagrams and charts used in this README
 └── ruff.toml, LICENSE
 ```
 
-Every phase uses the same `src/ratelab/` layout, one package per domain (a phase only has the
-packages it needs: phase 01 has just `algorithms/`, phase 05 has no `algorithms/`):
+There is no `02`: counting in each server's memory lets roughly the limit × the number of servers
+through, so the design goes straight to a shared Redis.
+
+Inside each folder, the code is split by job:
 
 ```text
 src/ratelab/
-├── app.py, __main__.py   build and run the FastAPI app
-├── config.py             RATELAB_* settings
-├── constants.py, metrics.py
-├── limiter.py            the contract: RateLimitRule, RateLimitDecision, RateLimiter.acquire()
-├── clock.py              real and fake clocks
-├── algorithms/           the six algorithms in memory, their base class, per-key state store
-├── storage/              Redis client, Lua scripts and limiters, hot keys, tiers, failure policy
-├── policies/             policies.yaml models and the limiter built for each route
-└── api/                  routes, rate limit middleware, caller key, RateLimit headers
+├── app.py, config.py      build the FastAPI app from RATELAB_* settings
+├── limiter.py             the contract: RateLimitRule, RateLimitDecision, acquire()
+├── algorithms/            the six algorithms (in memory)
+├── storage/               Redis client, Lua scripts and limiters, hot keys, tiers, failure policy
+├── policies/              policies.yaml and the limiter built for each route
+└── api/                   routes, rate limit middleware, caller key, RateLimit headers
 ```
+
+---
 
 ## License
 

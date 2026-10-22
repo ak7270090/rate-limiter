@@ -1,0 +1,71 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {"type":"text","id":"title","x":30,"y":20,"width":900,"height":35,"text":"Distributed rate limiter: how one request is decided","originalText":"Distributed rate limiter: how one request is decided","fontSize":28,"fontFamily":3,"strokeColor":"#1e40af","roughness":1},
+    {"type":"text","id":"subtitle","x":30,"y":66,"width":1300,"height":22,"text":"Exact across every API replica, one Redis round trip per request, and a planned answer when Redis is down.","originalText":"Exact across every API replica, one Redis round trip per request, and a planned answer when Redis is down.","fontSize":17,"fontFamily":3,"strokeColor":"#64748b","roughness":1},
+
+    {"type":"ellipse","id":"client","x":10,"y":270,"width":190,"height":110,"strokeColor":"#c2410c","backgroundColor":"#fed7aa","fillStyle":"solid","strokeWidth":2,"roughness":1,"boundElements":[{"id":"client_t","type":"text"}]},
+    {"type":"text","id":"client_t","x":30,"y":295,"width":150,"height":60,"text":"client\nPOST /orders\nX-API-Key: k42","originalText":"client\nPOST /orders\nX-API-Key: k42","fontSize":15,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"client","roughness":1},
+
+    {"type":"arrow","id":"a_client_edge","x":204,"y":325,"width":56,"height":0,"points":[[0,0],[56,0]],"strokeColor":"#c2410c","strokeWidth":2,"roughness":1,"endArrowhead":"arrow"},
+
+    {"type":"rectangle","id":"edge","x":264,"y":270,"width":220,"height":110,"strokeColor":"#1e3a5f","backgroundColor":"#93c5fd","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"edge_t","type":"text"}]},
+    {"type":"text","id":"edge_t","x":274,"y":295,"width":200,"height":60,"text":"edge proxy\nnginx / Envoy\ncoarse shield","originalText":"edge proxy\nnginx / Envoy\ncoarse shield","fontSize":16,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"edge","roughness":1},
+    {"type":"text","id":"edge_note","x":264,"y":392,"width":230,"height":40,"text":"a flood gets 429 here;\nthe app never sees it","originalText":"a flood gets 429 here;\nthe app never sees it","fontSize":14,"fontFamily":3,"strokeColor":"#b91c1c","roughness":1},
+
+    {"type":"arrow","id":"a_edge_api","x":488,"y":325,"width":62,"height":0,"points":[[0,0],[62,0]],"strokeColor":"#1e3a5f","strokeWidth":2,"roughness":1,"endArrowhead":"arrow"},
+
+    {"type":"rectangle","id":"api_frame","x":554,"y":140,"width":360,"height":500,"strokeColor":"#1e40af","backgroundColor":"transparent","strokeWidth":2,"strokeStyle":"dashed","roughness":1,"roundness":{"type":3}},
+    {"type":"text","id":"api_label","x":576,"y":152,"width":300,"height":28,"text":"API replica (x3)","originalText":"API replica (x3)","fontSize":21,"fontFamily":3,"strokeColor":"#1e40af","roughness":1},
+
+    {"type":"rectangle","id":"middleware","x":579,"y":195,"width":310,"height":100,"strokeColor":"#1e3a5f","backgroundColor":"#3b82f6","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"middleware_t","type":"text"}]},
+    {"type":"text","id":"middleware_t","x":589,"y":215,"width":290,"height":60,"text":"middleware\nwho: key:k42\nwhich limit: orders","originalText":"middleware\nwho: key:k42\nwhich limit: orders","fontSize":16,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#ffffff","containerId":"middleware","roughness":1},
+
+    {"type":"arrow","id":"a_mw_breaker","x":734,"y":298,"width":0,"height":32,"points":[[0,0],[0,32]],"strokeColor":"#1e3a5f","strokeWidth":2,"roughness":1,"endArrowhead":"arrow"},
+
+    {"type":"diamond","id":"breaker","x":619,"y":332,"width":230,"height":130,"strokeColor":"#b45309","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roughness":1,"boundElements":[{"id":"breaker_t","type":"text"}]},
+    {"type":"text","id":"breaker_t","x":674,"y":377,"width":120,"height":40,"text":"Redis\nhealthy?","originalText":"Redis\nhealthy?","fontSize":16,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"breaker","roughness":1},
+
+    {"type":"arrow","id":"a_breaker_lua","x":734,"y":465,"width":0,"height":40,"points":[[0,0],[0,40]],"strokeColor":"#047857","strokeWidth":2,"roughness":1,"endArrowhead":"arrow"},
+    {"type":"text","id":"yes_label","x":744,"y":472,"width":40,"height":20,"text":"yes","originalText":"yes","fontSize":15,"fontFamily":3,"strokeColor":"#047857","roughness":1},
+
+    {"type":"rectangle","id":"lua","x":579,"y":508,"width":310,"height":100,"strokeColor":"#1e3a5f","backgroundColor":"#60a5fa","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"lua_t","type":"text"}]},
+    {"type":"text","id":"lua_t","x":589,"y":528,"width":290,"height":60,"text":"Lua limiter\none EVALSHA:\nread + decide + write","originalText":"Lua limiter\none EVALSHA:\nread + decide + write","fontSize":16,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#1e3a5f","containerId":"lua","roughness":1},
+
+    {"type":"arrow","id":"a_breaker_fallback","x":616,"y":397,"width":110,"height":148,"points":[[0,0],[-88,0],[-88,148],[-108,148]],"strokeColor":"#dc2626","strokeWidth":2,"roughness":1,"endArrowhead":"arrow"},
+    {"type":"text","id":"no_label","x":572,"y":372,"width":40,"height":20,"text":"no","originalText":"no","fontSize":15,"fontFamily":3,"strokeColor":"#dc2626","roughness":1},
+
+    {"type":"rectangle","id":"fallback","x":264,"y":480,"width":240,"height":130,"strokeColor":"#dc2626","backgroundColor":"#fee2e2","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"fallback_t","type":"text"}]},
+    {"type":"text","id":"fallback_t","x":274,"y":490,"width":220,"height":110,"text":"Redis down:\neach route decides\n/items   allow\n/orders  503\n/search  local / 3","originalText":"Redis down:\neach route decides\n/items   allow\n/orders  503\n/search  local / 3","fontSize":15,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"fallback","roughness":1},
+
+    {"type":"arrow","id":"a_lua_redis","x":892,"y":558,"width":106,"height":43,"points":[[0,0],[50,0],[50,-43],[106,-43]],"strokeColor":"#1e3a5f","strokeWidth":2,"roughness":1,"endArrowhead":"arrow"},
+
+    {"type":"text","id":"redis_label","x":1000,"y":432,"width":300,"height":28,"text":"Redis Cluster","originalText":"Redis Cluster","fontSize":21,"fontFamily":3,"strokeColor":"#047857","roughness":1},
+    {"type":"rectangle","id":"primary1","x":1000,"y":470,"width":150,"height":90,"strokeColor":"#047857","backgroundColor":"#a7f3d0","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"primary1_t","type":"text"}]},
+    {"type":"text","id":"primary1_t","x":1010,"y":495,"width":130,"height":40,"text":"primary 1\n+ replica","originalText":"primary 1\n+ replica","fontSize":15,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"primary1","roughness":1},
+    {"type":"rectangle","id":"primary2","x":1170,"y":470,"width":150,"height":90,"strokeColor":"#047857","backgroundColor":"#a7f3d0","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"primary2_t","type":"text"}]},
+    {"type":"text","id":"primary2_t","x":1180,"y":495,"width":130,"height":40,"text":"primary 2\n+ replica","originalText":"primary 2\n+ replica","fontSize":15,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"primary2","roughness":1},
+    {"type":"rectangle","id":"primary3","x":1340,"y":470,"width":150,"height":90,"strokeColor":"#047857","backgroundColor":"#a7f3d0","fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":3},"boundElements":[{"id":"primary3_t","type":"text"}]},
+    {"type":"text","id":"primary3_t","x":1350,"y":495,"width":130,"height":40,"text":"primary 3\n+ replica","originalText":"primary 3\n+ replica","fontSize":15,"fontFamily":3,"textAlign":"center","verticalAlign":"middle","strokeColor":"#374151","containerId":"primary3","roughness":1},
+    {"type":"text","id":"redis_note","x":1000,"y":575,"width":560,"height":72,"text":"the {hash tag} keeps one caller's keys on one primary,\nso per-key limits spread over all three. A global limit\nis one hot key: split it into 10 sub-keys, or lease\n30 tokens per Redis call.","originalText":"the {hash tag} keeps one caller's keys on one primary,\nso per-key limits spread over all three. A global limit\nis one hot key: split it into 10 sub-keys, or lease\n30 tokens per Redis call.","fontSize":14,"fontFamily":3,"strokeColor":"#64748b","roughness":1},
+
+    {"type":"text","id":"call_caption","x":1000,"y":124,"width":420,"height":20,"text":"the one Redis call, for real","originalText":"the one Redis call, for real","fontSize":15,"fontFamily":3,"strokeColor":"#64748b","roughness":1},
+    {"type":"rectangle","id":"call_panel","x":1000,"y":150,"width":500,"height":215,"strokeColor":"#1e293b","backgroundColor":"#1e293b","fillStyle":"solid","strokeWidth":1,"roughness":0,"roundness":{"type":3}},
+    {"type":"text","id":"call_code","x":1020,"y":166,"width":460,"height":185,"text":"EVALSHA <token_bucket.lua> 1\n  rl:{orders:key:k42}:token_bucket\n  10 60 1 5     limit window cost burst\n\n-- runs alone inside Redis:\n-- refill, take a token, write, expire\n\n-> {1, 5, 4, 6000, 0, 0}\n   allowed, 4 left, full again in 6 s","originalText":"EVALSHA <token_bucket.lua> 1\n  rl:{orders:key:k42}:token_bucket\n  10 60 1 5     limit window cost burst\n\n-- runs alone inside Redis:\n-- refill, take a token, write, expire\n\n-> {1, 5, 4, 6000, 0, 0}\n   allowed, 4 left, full again in 6 s","fontSize":15,"fontFamily":3,"strokeColor":"#22c55e","roughness":0},
+
+    {"type":"text","id":"reply_caption","x":1540,"y":124,"width":340,"height":20,"text":"6 taps in 1 second: the 6th","originalText":"6 taps in 1 second: the 6th","fontSize":15,"fontFamily":3,"strokeColor":"#64748b","roughness":1},
+    {"type":"rectangle","id":"reply_panel","x":1540,"y":150,"width":330,"height":215,"strokeColor":"#1e293b","backgroundColor":"#1e293b","fillStyle":"solid","strokeWidth":1,"roughness":0,"roundness":{"type":3}},
+    {"type":"text","id":"reply_code","x":1560,"y":166,"width":290,"height":185,"text":"HTTP/1.1 429\nRetry-After: 5\nRateLimit-Policy:\n  \"orders\";q=10;w=60\nRateLimit:\n  \"orders\";r=0;t=29\n\n{\"detail\": \"rate limit\n  exceeded\", \"policy\": \"orders\"}","originalText":"HTTP/1.1 429\nRetry-After: 5\nRateLimit-Policy:\n  \"orders\";q=10;w=60\nRateLimit:\n  \"orders\";r=0;t=29\n\n{\"detail\": \"rate limit\n  exceeded\", \"policy\": \"orders\"}","fontSize":15,"fontFamily":3,"strokeColor":"#22c55e","roughness":0},
+
+    {"type":"text","id":"limits_caption","x":1540,"y":432,"width":300,"height":20,"text":"the limits, in policies.yaml","originalText":"the limits, in policies.yaml","fontSize":15,"fontFamily":3,"strokeColor":"#64748b","roughness":1},
+    {"type":"rectangle","id":"limits_panel","x":1540,"y":458,"width":330,"height":150,"strokeColor":"#1e293b","backgroundColor":"#1e293b","fillStyle":"solid","strokeWidth":1,"roughness":0,"roundness":{"type":3}},
+    {"type":"text","id":"limits_code","x":1558,"y":474,"width":300,"height":120,"text":"items    100 / 10 s per key\norders   10 / min, burst 5\nsearch   300 / 10 s, everyone\nreports  50 / day per key\n\nfail: allow | 503 | local","originalText":"items    100 / 10 s per key\norders   10 / min, burst 5\nsearch   300 / 10 s, everyone\nreports  50 / day per key\n\nfail: allow | 503 | local","fontSize":15,"fontFamily":3,"strokeColor":"#22c55e","roughness":0},
+
+    {"type":"line","id":"divider","x":30,"y":668,"width":1840,"height":0,"points":[[0,0],[1840,0]],"strokeColor":"#cbd5e1","strokeWidth":1,"roughness":0},
+    {"type":"text","id":"summary","x":30,"y":686,"width":1840,"height":22,"text":"1 the edge sheds floods  ->  2 who is calling, which limit  ->  3 one atomic Lua call in Redis  ->  4 Redis down? the route decides  ->  5 200, or 429 + Retry-After","originalText":"1 the edge sheds floods  ->  2 who is calling, which limit  ->  3 one atomic Lua call in Redis  ->  4 Redis down? the route decides  ->  5 200, or 429 + Retry-After","fontSize":16,"fontFamily":3,"strokeColor":"#1e40af","roughness":1}
+  ],
+  "appState": {"viewBackgroundColor": "#ffffff", "gridSize": 20},
+  "files": {}
+}
